@@ -1,0 +1,49 @@
+# This file is the entry point to configure your own services.
+# Files in the packages/ subdirectory configure your dependencies.
+
+# Put parameters here that don't need to change on each machine where the app is deployed
+# https://symfony.com/doc/current/best_practices.html#use-parameters-for-application-configuration
+parameters:
+
+services:
+    # default configuration for services in *this* file
+    _defaults:
+        autowire: true      # Automatically injects dependencies in your services.
+        autoconfigure: true # Automatically registers your services as commands, event subscribers, etc.
+
+    # makes classes in src/ available to be used as services
+    # this creates a service per class whose id is the fully-qualified class name
+    App\:
+        resource: '../src/'
+        exclude:
+            - '../src/DependencyInjection/'
+            - '../src/Entity/'
+            - '../src/Kernel.php'
+    App\Service\Telegram\SignalsTelegramService:
+        arguments:
+            $botToken: '%env(ERIK_TELEGRAM_TOKEN)%'
+            $channelId: '%env(SIGNAL_CHANNEL_ID)%'
+
+    App\Service\Telegram\Bot\AlexaBotService: ~
+    App\Service\Telegram\Bot\ErikBotService: ~
+
+    # BOT with Listenable injections
+    App\Command\SetTelegramBotWebhooksCommand:
+        arguments:
+            $botServices:
+                - '@App\Service\Telegram\Bot\AlexaBotService'
+        tags: ['console.command']
+
+    App\EventListener\Webhooks\TelegramWebhookListener:
+        arguments:
+            $botToken: '%env(ALEXA_TELEGRAM_TOKEN)%'
+        tags:
+            - { name: kernel.event_listener, event: kernel.request }
+    
+    # BOT token injections 
+    App\Service\Telegram\Bot\AlexaBotService:
+        arguments:
+            $token: '%env(ALEXA_TELEGRAM_TOKEN)%'
+    App\Service\Telegram\Bot\ErikBotService:
+            arguments:
+                $token: '%env(ERIK_TELEGRAM_TOKEN)%'
