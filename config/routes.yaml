@@ -1,4 +1,0 @@
-webhook_alexa:
-    path: /webhook-alexa
-    controller: null
-    methods: [POST]

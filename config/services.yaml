@@ -24,9 +24,6 @@ services:
             $botToken: '%env(ERIK_TELEGRAM_TOKEN)%'
             $channelId: '%env(SIGNAL_CHANNEL_ID)%'
 
-    App\Service\Telegram\Bot\AlexaBotService: ~
-    App\Service\Telegram\Bot\ErikBotService: ~
-
     # BOT with Listenable injections
     App\Command\SetTelegramBotWebhooksCommand:
         arguments:
@@ -34,12 +31,6 @@ services:
                 - '@App\Service\Telegram\Bot\AlexaBotService'
         tags: ['console.command']
 
-    App\EventListener\Webhooks\TelegramWebhookListener:
-        arguments:
-            $botToken: '%env(ALEXA_TELEGRAM_TOKEN)%'
-        tags:
-            - { name: kernel.event_listener, event: kernel.request }
-    
     # BOT token injections 
     App\Service\Telegram\Bot\AlexaBotService:
         arguments:

@@ -11,7 +11,7 @@ use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
 #[AsCommand(
-    name: 'app:alexa-webhook-up',
+    name: 'app:telegram-bots-webhook-up',
     description: 'Setting up Telegram bot webhooks',
 )]
 class SetTelegramBotWebhooksCommand extends Command
@@ -34,11 +34,9 @@ class SetTelegramBotWebhooksCommand extends Command
         foreach ($this->botServices as $botService) {
             if ($botService instanceof Listenable) {
                 $result = $botService->webhook();
-                $output->writeln($result['ok'] ? "$botService Webhook set successfully!" : 'Failed to set webhook: ' . $result['description']);
+                $output->writeln($result['ok'] ? "Webhook set successfully!" : 'Failed to set webhook: ' . $result['description']);
             }
         }
-
-        $output->writeln($result['ok'] ? 'Webhook set successfully!' : 'Failed to set webhook: ' . $result['description']);
 
         return Command::SUCCESS;
     }

@@ -2,7 +2,7 @@
 
 declare(strict_types=1);
 
-namespace App\Channel\Signals\Template;
+namespace App\Template;
 
 final class TradingSignalTemplate
 {

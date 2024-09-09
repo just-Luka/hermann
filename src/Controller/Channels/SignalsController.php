@@ -2,10 +2,10 @@
 
 declare(strict_types=1);
 
-namespace App\Channel\Signals\Controller;
+namespace App\Controller\Channels;
 
-use App\Channel\Signals\Form\TradingSignalType;
-use App\Channel\Signals\Template\TradingSignalTemplate;
+use App\Form\TradingSignalType;
+use App\Template\TradingSignalTemplate;
 use App\Service\Telegram\SignalsTelegramService;
 use App\Service\Validation\SimpleValidationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -13,7 +13,7 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\Routing\Annotation\Route;
 
-final class MainController extends AbstractController
+final class SignalsController extends AbstractController
 {
     private $telegramService;
 
