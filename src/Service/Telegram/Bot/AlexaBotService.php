@@ -5,11 +5,12 @@ declare(strict_types=1);
 namespace App\Service\Telegram\Bot;
 
 use App\Contract\Listenable;
+use App\Contract\Multilingual;
 use App\Trait\AppTrait;
 use GuzzleHttp\Client;
 use Psr\Log\LoggerInterface;
 
-class AlexaBotService implements Listenable
+class AlexaBotService implements Listenable, Multilingual
 {
     use AppTrait;
 
@@ -44,6 +45,11 @@ class AlexaBotService implements Listenable
         }
     }
 
+    public function translationPath(): string
+    {
+        return __DIR__ . '/../../../../translations/alexa/';
+    }
+
     /**
      * webhookURL
      * In local we use ngrok to test https webhooks
@@ -54,7 +60,7 @@ class AlexaBotService implements Listenable
     private function webhookURL(): string
     {
         if (! $this->isProd()) {
-            return 'https://ba15-2a0b-6204-49f7-c500-4d6e-d687-1fe4-13d.ngrok-free.app' . self::WEBHOOK_SLUG;
+            return 'https://101c-2a0b-6204-49f7-c500-4d6e-d687-1fe4-13d.ngrok-free.app' . self::WEBHOOK_SLUG;
         }
 
         return $this->url() . self::WEBHOOK_SLUG;
