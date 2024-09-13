@@ -36,5 +36,11 @@ services:
         arguments:
             $token: '%env(ALEXA_TELEGRAM_TOKEN)%'
     App\Service\Telegram\Bot\ErikBotService:
-            arguments:
-                $token: '%env(ERIK_TELEGRAM_TOKEN)%'
+        arguments:
+            $token: '%env(ERIK_TELEGRAM_TOKEN)%'
+    # Capital Credentials injections
+    App\Service\Capital\CapitalService:
+        arguments:
+            $apiKey: '%env(CAPITAL_API)%'
+            $login: '%env(CAPITAL_LOGIN)%'
+            $password: '%env(CAPITAL_API_PASS)%'

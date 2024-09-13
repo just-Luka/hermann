@@ -1,0 +1,6 @@
+controllers:
+    resource:
+        path: ../../src/Controller/Capital/
+        namespace: App\Controller\Capital
+    type: attribute
+    prefix: /capital
