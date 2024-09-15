@@ -1,0 +1,14 @@
+nelmio_cors:
+    defaults:
+        origin_regex: true
+        allow_origin: ['%env(CORS_ALLOW_ORIGIN)%']
+        allow_methods: ['GET', 'OPTIONS', 'POST', 'PUT', 'PATCH', 'DELETE']
+        allow_headers: ['Content-Type', 'Authorization']
+        expose_headers: ['Link']
+        max_age: 3600
+    paths:
+        '^/tapp/tg-auth':
+            allow_origin: ['https://main--glittering-phoenix-369fde.netlify.app'] # disable on prod
+            allow_methods: ['OPTIONS', 'POST']
+            allow_headers: ['Content-Type', 'Authorization', 'X-Requested-With']
+            max_age: 3600

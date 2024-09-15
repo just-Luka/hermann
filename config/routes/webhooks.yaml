@@ -3,6 +3,11 @@ webhook_alexa:
     controller: App\Controller\Bots\AlexaController::handleWebhook
     methods: [POST]
 
+webhook_trading:
+    path: /webhook_trading
+    controller: App\Controller\Bots\TradingController::handleWebhook
+    methods: [POST]
+
 # webhook_another_event:
 #     path: /webhook_another_event
 #     controller: App\Controller\WebhookController::handleAnotherEvent

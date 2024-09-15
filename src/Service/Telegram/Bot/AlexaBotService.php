@@ -36,7 +36,7 @@ class AlexaBotService implements Listenable, Multilingual
     {
         try {
             $response = $this->client->post("https://api.telegram.org/bot{$this->token}/setWebhook", [
-                'form_params' => ['url' => $this->webhookURL()]
+                'form_params' => ['url' => $this->webhookURL() . self::WEBHOOK_SLUG]
             ]);
     
             return json_decode($response->getBody()->getContents(), true);
@@ -48,22 +48,6 @@ class AlexaBotService implements Listenable, Multilingual
     public function translationPath(): string
     {
         return __DIR__ . '/../../../../translations/alexa/';
-    }
-
-    /**
-     * webhookURL
-     * In local we use ngrok to test https webhooks
-     * Uses ngrok address if local, otherwise our domain
-     * 
-     * @return string
-     */
-    private function webhookURL(): string
-    {
-        if (! $this->isProd()) {
-            return 'https://101c-2a0b-6204-49f7-c500-4d6e-d687-1fe4-13d.ngrok-free.app' . self::WEBHOOK_SLUG;
-        }
-
-        return $this->url() . self::WEBHOOK_SLUG;
     }
 
     public function sendCommandAnswer($chatId, $responseText): void

@@ -1,0 +1,6 @@
+controllers:
+    resource:
+        path: ../../src/Controller/TradingApp/
+        namespace: App\Controller\TradingApp
+    type: attribute
+    prefix: /tapp

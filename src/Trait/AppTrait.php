@@ -15,4 +15,9 @@ trait AppTrait
     {
         return $this->isProd() ? $_ENV['PROD_URL'] : $_ENV['TEST_URL'];
     }
+
+    public function webhookURL(): string
+    {
+        return $this->isProd() ? $this->url() : $_ENV['NGROK_URL'];
+    }
 }
