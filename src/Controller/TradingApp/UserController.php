@@ -16,17 +16,15 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 final class UserController extends AbstractController
 {
     private $logger;
-    private $user;
 
-    public function __construct(LoggerInterface $logger, UserRepository $user)
+    public function __construct(LoggerInterface $logger)
     {
         $this->logger = $logger;
-        $this->user = $user;
     }
     
 
     #[Route('/me', methods: ['GET'])]
-    public function show(Request $request, JWTTokenManagerInterface $jwtManager): JsonResponse
+    public function me(Request $request, JWTTokenManagerInterface $jwtManager, UserRepository $userRepository): JsonResponse
     {
         $token = $this->extractTokenFromRequest($request);
 
@@ -36,15 +34,23 @@ final class UserController extends AbstractController
     
         // Decode and validate the JWT token
         try {
-            $decodedData = $jwtManager->parse($token);
+            $data = $jwtManager->parse($token);
         } catch (\Exception $e) {
             throw new AuthenticationException('Invalid JWT token');
         }
 
-        $this->logger->warning(json_encode($decodedData));
-     
-        
-        return $this->json([]);
+        $user = $userRepository->findOneBy(['username' => $data['username']]);
+        if (! $user) {
+            throw $this->createNotFoundException('User no longer exists!');
+        }
+
+        return $this->json([
+            'id' => $user->getId(),
+            'created_at' => $user->getCreatedAt(),
+            'updated_at' => $user->getUpdatedAt(),
+            'first_name' => $user->getFirstName(),
+            'username' => $user->getUsername(),
+        ]);
     }
 
     public function extractTokenFromRequest(Request $request): ?string

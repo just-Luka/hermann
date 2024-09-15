@@ -41,7 +41,7 @@ class UserRepository extends ServiceEntityRepository
     //        ;
     //    }
 
-    public function findByTelegramId(int $id)
+    public function findByTelegramId(int $id): ?User
     {
         return $this->findOneBy(['telegram_id' => $id]);
     }

@@ -12,7 +12,6 @@ use Doctrine\ORM\EntityManagerInterface;
 use Lexik\Bundle\JWTAuthenticationBundle\Services\JWTTokenManagerInterface;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\HttpFoundation\Cookie;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpKernel\Exception\BadRequestHttpException;
@@ -57,15 +56,10 @@ final class AuthController extends AbstractController
         }
 
         $token = $jwtManager->create($user);
-
-        $response = new JsonResponse([
-            'status' => 'ok',
-        ]);
-        
-        $response->headers->setCookie(
-            Cookie::create('otk', $token, time() + 3600, '/', null, true, true, false, 'Strict')
-        );
         $this->logger->warning($token);
-        return $response;
+        return $this->json([
+            'status' => 'ok',
+            'token' => $token,
+        ]);
     }
 }
