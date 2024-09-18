@@ -38,11 +38,14 @@ class User implements UserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $photo_url = null;
 
-    #[ORM\Column(type: Types::BIGINT)]
+    #[ORM\Column(type: Types::BIGINT, nullable: true)]
     private ?string $telegram_auth_date = null;
 
-    #[ORM\Column(length: 255)]
+    #[ORM\Column(length: 255, nullable: true)]
     private ?string $telegram_hash = null;
+
+    #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
+    private float $balance = 0;
 
     public function getId(): ?int
     {
@@ -138,7 +141,7 @@ class User implements UserInterface
         return $this->telegram_auth_date;
     }
 
-    public function setTelegramAuthDate(string $telegram_auth_date): static
+    public function setTelegramAuthDate(?string $telegram_auth_date): static
     {
         $this->telegram_auth_date = $telegram_auth_date;
 
@@ -150,9 +153,23 @@ class User implements UserInterface
         return $this->telegram_hash;
     }
 
-    public function setTelegramHash(string $telegram_hash): static
+    public function setTelegramHash(?string $telegram_hash): static
     {
         $this->telegram_hash = $telegram_hash;
+
+        return $this;
+    }
+
+    // Getter for balance
+    public function getBalance(): float
+    {
+        return (float) $this->balance;
+    }
+
+    // Setter for balance
+    public function setBalance(float $balance): static
+    {
+        $this->balance = $balance;
 
         return $this;
     }
