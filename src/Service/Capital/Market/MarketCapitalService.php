@@ -8,7 +8,6 @@ use App\Service\Capital\CapitalService;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Cache\Adapter\AdapterInterface;
 
 final class MarketCapitalService
 {
@@ -16,35 +15,17 @@ final class MarketCapitalService
     private $logger;
     private $client;
     private $url;
-    private $cache; // Die Probleme autowiring
 
-    // Constants for Redis keys
-    // private const REDIS_SECURITY_TOKEN_KEY = 'security_token';
-    // private const REDIS_CST_TOKEN_KEY = 'cst_token';
-
-    // private string $secT;
-    // private string $cst;
-
-    public function __construct(CapitalService $capitalService, LoggerInterface $logger, AdapterInterface $cache)
+    public function __construct(CapitalService $capitalService, LoggerInterface $logger)
     {
         $this->capitalService = $capitalService;
         $this->logger = $logger;
         $this->client = new Client();
         $this->url = $capitalService->url() . '/markets';
-        $this->cache = $cache;
-
-        // $this->secT = $this->cache->getItem(self::REDIS_SECURITY_TOKEN_KEY)->get() ?? 'default_secT';
-        // $this->cst = $this->cache->getItem(self::REDIS_CST_TOKEN_KEY)->get() ?? 'default_cst';
     }
 
     public function pairsSearch($keyword): ?array
     {
-        // Define headers
-        $headers = [
-            'X-SECURITY-TOKEN' => $this->secT,
-            'CST' => $this->cst,
-        ];
-    
         try {
             // Define query parameters
             $queryParams = [
@@ -54,7 +35,7 @@ final class MarketCapitalService
     
             // Make the GET request with query parameters
             $response = $this->client->request('GET', $this->url, [
-                'headers' => $headers,
+                'headers' => $this->capitalService->cHeader(),
                 'query' => $queryParams, // Guzzle will append these as query string
             ]);
     
@@ -64,19 +45,13 @@ final class MarketCapitalService
             return $body;
         } catch (RequestException $e) {
             if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 401) {
-                $session = $this->capitalService->initSession();
-                $xtoken = $session['header']['X-SECURITY-TOKEN'][0];
-                $cst = $session['header']['CST'][0];
-
-                // Update local tokens
-                $this->secT = $xtoken;
-                $this->cst = $cst;
-                $this->logger->warning('WARNUNG');
-                $this->logger->warning($cst);
-                $this->logger->warning($xtoken);
-                // Store new tokens in Redis
-                $this->saveTokenToCache(self::REDIS_SECURITY_TOKEN_KEY, $xtoken);
-                $this->saveTokenToCache(self::REDIS_CST_TOKEN_KEY, $cst);
+                if (! $this->capitalService->getInitAttempt()) { // Ob haben wir init noch nicht versucht
+                    $this->capitalService->initSession();
+                    $this->capitalService->setInitAttempt(true);
+                    return $this->pairsSearch($keyword);
+                } else {
+                    // Einer Wichtiger Fehler, init aktualisierung FAILED
+                }
             }
 
             return null;
@@ -90,15 +65,10 @@ final class MarketCapitalService
     
     public function singleMarketInfo($epic): ?array
     {
-        $headers = [
-            'X-SECURITY-TOKEN' => $this->secT,
-            'CST' => $this->cst,
-        ];
-
         try {
             $url = $this->url . "/{$epic}";
             $response = $this->client->request('GET', $url, [
-                'headers' => $headers,
+                'headers' => $this->capitalService->cHeader(),
             ]);
 
             // Parse the response body
@@ -107,19 +77,13 @@ final class MarketCapitalService
             return $body;
         } catch (RequestException $e) {
             if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 401) {
-                // $session = $this->capitalService->initSession();
-                // $xtoken = $session['header']['X-SECURITY-TOKEN'][0];
-                // $cst = $session['header']['CST'][0];
-
-                // // Update local tokens
-                // $this->secT = $xtoken;
-                // $this->cst = $cst;
-                // $this->logger->warning('WARNUN1');
-                // $this->logger->warning($cst);
-                // $this->logger->warning($xtoken);
-                // // Store new tokens in Redis
-                // $this->saveTokenToCache(self::REDIS_SECURITY_TOKEN_KEY, $xtoken);
-                // $this->saveTokenToCache(self::REDIS_CST_TOKEN_KEY, $cst);
+                if (! $this->capitalService->getInitAttempt()) { // Ob haben wir init noch nicht versucht
+                    $this->capitalService->initSession();
+                    $this->capitalService->setInitAttempt(true);
+                    return $this->singleMarketInfo($epic);
+                } else {
+                    // Einer Wichtiger Fehler, init aktualisierung FAILED
+                }
             }
             return null;
         } catch (\Exception $e) {
@@ -129,11 +93,4 @@ final class MarketCapitalService
             return null;
         }
     }
-
-    // private function saveTokenToCache(string $key, string $value): void
-    // {
-    //     $cacheItem = $this->cache->getItem($key);
-    //     $cacheItem->set($value);
-    //     $this->cache->save($cacheItem);
-    // }
 }

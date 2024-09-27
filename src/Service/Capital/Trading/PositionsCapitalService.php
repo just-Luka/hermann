@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Service\Capital\Trading;
 
 use App\Service\Capital\CapitalService;
+use Exception;
 use GuzzleHttp\Client;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Log\LoggerInterface;
@@ -15,39 +16,22 @@ final class PositionsCapitalService
     private $logger;
     private $client;
     private $url;
+    private $confirmURL;
 
-    private $secT = 'cxG41UpRlQU7SHPSrXszY2dEkJeLUla';
-    private $cst = 'fi0Te9kbVOd6ND8FMaBY3YTt';
     public function __construct(CapitalService $capitalService, LoggerInterface $logger)
     {
         $this->capitalService = $capitalService;
         $this->logger = $logger;
         $this->client = new Client();
         $this->url = $capitalService->url() . '/positions';
+        $this->confirmURL = $capitalService->url() . '/confirms';
     }
 
-    public function create(): ?array
+    public function create(array $payload): ?array
     {
-        // Under maintenance
-        //
-        // $res = $this->capitalService->initSession();
-        // dd($res);
-        // return null;
-        $payload = [
-            'epic' => 'SILVER',
-            'direction' => 'SELL',
-            'size' => 1,
-            'guaranteedStop' => false,
-        ];
-
-        $headers = [
-            'X-SECURITY-TOKEN' => $this->secT,
-            'CST' => $this->cst,
-        ];
-
         try {
             $response = $this->client->post($this->url, [
-                'headers' => $headers,
+                'headers' => $this->capitalService->cHeader(),
                 'json' => $payload,
             ]);
 
@@ -59,33 +43,45 @@ final class PositionsCapitalService
                 'header' => $header,
             ];
         } catch (RequestException $e) {
+            if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 401) {
+                if (! $this->capitalService->getInitAttempt()) { // Ob haben wir init noch nicht versucht
+                    $this->capitalService->initSession();
+                    $this->capitalService->setInitAttempt(true);
+                    return $this->create($payload);
+                } else {
+                    // Einer Wichtiger Fehler, init aktualisierung FAILED
+                }
+            }
+            return null;
+        } catch (Exception $e) {
             $this->logger->error('API request failed: ' . $e->getMessage());
 
             return null;
         }
     }
 
-    public function singlePosition($dealId): ?array
+    public function confirm($dealId): ?array
     {
-        $headers = [
-            'X-SECURITY-TOKEN' => $this->secT,
-            'CST' => $this->cst,
-        ];
-
         try {
-            $url = 'https://demo-api-capital.backend-capital.com/api/v1/confirms/' . $dealId;
-            $response = $this->client->get($url, [
-                'headers' => $headers,
+            $response = $this->client->get($this->confirmURL . "/$dealId", [
+                'headers' => $this->capitalService->cHeader(),
             ]);
 
             $body = json_decode((string) $response->getBody(), true);
-            $header = $response->getHeaders();
             
-            return [
-                'body' => $body,
-                'header' => $header,
-            ];
+            return $body;
         } catch (RequestException $e) {
+            if ($e->hasResponse() && $e->getResponse()->getStatusCode() === 401) {
+                if (! $this->capitalService->getInitAttempt()) { // Ob haben wir init noch nicht versucht
+                    $this->capitalService->initSession();
+                    $this->capitalService->setInitAttempt(true);
+                    return $this->confirm($dealId);
+                } else {
+                    // Einer Wichtiger Fehler, init aktualisierung FAILED
+                }
+            }
+            return null;
+        } catch (Exception $e) {
             $this->logger->error('API request failed: ' . $e->getMessage());
 
             return null;

@@ -11,23 +11,19 @@ use App\Repository\UserRepository;
 use App\Service\Telegram\Bot\TradingBotService;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Client;
 use Psr\Log\LoggerInterface;
 
 final class TradingBotCommand
 {
-    private $client;
-    private $token;
-    private $logger;
-    private $userRepository;
-    private $entityManager;
-    private $tradingBotService;
-    private $chatId;
-    private $sender;
-    private $cmdQueueRepository;
+    private LoggerInterface $logger;
+    private UserRepository $userRepository;
+    private EntityManagerInterface $entityManager;
+    private TradingBotService $tradingBotService;
+    private CommandQueueStorageRepository $cmdQueueRepository;
+    private ?int $chatId;
+    private ?array $sender;
 
     public function __construct(
-        string $token, 
         LoggerInterface $logger, 
         UserRepository $userRepository,
         CommandQueueStorageRepository $cmdQueueRepository,
@@ -35,8 +31,6 @@ final class TradingBotCommand
         TradingBotService $tradingBotService,
     )
     {
-        $this->client = new Client();
-        $this->token = $token;
         $this->logger = $logger;
         $this->userRepository = $userRepository;
         $this->cmdQueueRepository = $cmdQueueRepository;
@@ -95,6 +89,7 @@ Available Commands:
 5. Close an active trade: /close
 6. Edit an open trade: /edit
 7. View recent activities: /history
+8. Exit from any process /exit
 
 ==============================
 ";
@@ -110,7 +105,9 @@ Available Commands:
 
         $instructions = [
             'type' => 'open',
-            'target_epic' => [],
+            'assets' => [],
+            'asset' => '',
+            'size' => '',
         ];
 
         $commandQueueStorage = new CommandQueueStorage();
@@ -133,5 +130,26 @@ For example
 Type: <b>Bitcoin</b>, <b>ETH</b>, <b>Tesla</b>, <b>USD/EUR</b>, <b>Gold</b>
 ";
         $this->tradingBotService->sendMessage($this->chatId, $message);
+    }
+
+    public function exit($hideMessage = false): void
+    {
+        $sender = $this->sender;
+        $user = $this->userRepository->findByTelegramId($sender['id']);
+
+        $storage = $this->cmdQueueRepository->findOneBy(['user' => $user]);
+
+        if ($storage) {
+            $this->entityManager->remove($storage);
+            $this->entityManager->flush();
+        }
+
+        if (! $hideMessage) {
+            $message = "
+Exited. ✅
+            ";
+            
+            $this->tradingBotService->sendMessage($this->chatId, $message);
+        }
     }
 }

@@ -13,6 +13,8 @@ class CommandQueueStorage
     // Command - /open
     public const QUESTION_SEARCH_ASSET = 'SEARCH_ASSET';
     public const QUESTION_CHOOSING_ASSET = 'CHOOSING_ASSET';
+    public const QUESTION_TYPING_AMOUNT = 'TYPING_AMOUNT';
+    public const QUESTION_CONFIRMING_AMOUNT = 'CONFIRMING_AMOUNT'; // BUY oder sell
     
     #[ORM\Id]
     #[ORM\GeneratedValue]

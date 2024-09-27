@@ -42,9 +42,6 @@ services:
     App\Service\Telegram\Bot\TradingBotService:
         arguments:
             $token: '%env(TRADING_TELEGRAM_TOKEN)%'
-    App\Service\Telegram\Bot\Command\TradingBotCommand:
-        arguments:
-            $token: '%env(TRADING_TELEGRAM_TOKEN)%'
 
     # Capital Credentials injections
     App\Service\Capital\CapitalService:

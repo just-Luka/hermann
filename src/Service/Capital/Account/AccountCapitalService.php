@@ -11,7 +11,7 @@ final class AccountCapitalService
         'INDICES' => 100,
         'COMMODITIES' => 100,
         'SHARES' => 20,
-        'CRYPTO' => 20,
+        'CRYPTOCURRENCIES' => 20,
     ];
 
     public function preferences()
