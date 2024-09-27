@@ -135,21 +135,32 @@ final class OpenCommunication
 
         $minDealSize = $pair['dealingRules']['minDealSize']['value'];
         $maxDealSize = $pair['dealingRules']['maxDealSize']['value'];
-        if ($minDealSize > $amount || $maxDealSize < $amount) {
-            // Wrong amount
-            // min amount :
-            // max amount :
-            // return;
+        if ($minDealSize > $amount || $maxDealSize < $amount) { // TODO Rate checking, reducing
+            $message = "
+Min available amount is <b>$minDealSize</b>
+Max available amount is <b>$maxDealSize</b>
+            ";
+            $this->tradingBotService->sendMessage($this->chatId, $message);
+            return;
         }
 
         $balance = $this->user->getBalance();
         $minSizeIncrementValue = $pair['dealingRules']['minSizeIncrement']['value'];
         $maxSizeAvailableForUser = $this->maxAssetSizeForUser($balance, $pair['snapshot']['offer'], $pair['instrument']['leverage'], $minSizeIncrementValue);
 
-        if ($amount > $maxSizeAvailableForUser) {
-            // Not enough funds
-            // max amount: 12000
-            // return;
+        if ($amount > $maxSizeAvailableForUser) { // TODO
+            $message = "
+Balance: <b>$$balance</b>
+Margin Balance: <b>$20</b>
+P&L: <b>+$140</b>
+Assets: <b>1</b>
+
+Not enough balance.
+Max available amount is <b>$maxSizeAvailableForUser</b>
+            ";
+
+            $this->tradingBotService->sendMessage($this->chatId, $message);
+            return;
         }
 
 
@@ -193,7 +204,7 @@ final class OpenCommunication
         $instructions = $this->commandQueueStorage->getInstructions();
 
         $payload = [
-            'epic' => $instructions['asset']['epic'],
+            'epic' => $instructions['asset']['instrument']['epic'],
             'direction' => 'BUY',
             'size' => $instructions['size'],
             'guaranteedStop' => false,
@@ -215,40 +226,45 @@ final class OpenCommunication
             // something went off
         }
 
-        $dealReference = $order['body']['dealReference'];
-        $balance = $this->user->getBalance();
-        $leverage = $this->accountCapitalService->leverage[$instructions['asset']['instrumentType']];
-        $initialMargin = $balance / $leverage;
-        $positionValue = $confirmation['level'] * $confirmation['size'];
-        $securingMargin = 0.9; // with 10% margin position will be closed
+        $confirmation['leverage'] = $instructions['asset']['instrument']['leverage'];
+        $confirmation['decimalPlaces'] = $instructions['asset']['snapshot']['decimalPlacesFactor'];
+        $message = $this->buyMessage($confirmation, $this->user->getBalance());
 
-        $liqPriceLong = ($positionValue - ($balance * $securingMargin - $initialMargin)) / $confirmation['size'];
-        $liqPriceLongFormatted = ($liqPriceLong < 0.00000001) ? "0" : number_format($liqPriceLong, $instructions['asset']['snapshot']['decimalPlacesFactor']);
-        $entryPriceFormatted = number_format($confirmation['level'], $instructions['asset']['snapshot']['decimalPlacesFactor']);
-        $balanceFormatted =  number_format($balance, 2);
-        $marginBalanceFormatted = ""; // TODO
-
-        $message = "
-Your order was accepted ✅
----------------------------------------
-<b>{$confirmation['epic']}</b>
-Entry price: {$entryPriceFormatted}
-Size: {$confirmation['size']}
-Direction: BUY
-DR code: $dealReference
-
----------------------------------------
-Balance: $$balanceFormatted
-Margin Balance: $100
-Estimated Liq. Price: $liqPriceLongFormatted
-";
         $this->tradingBotService->sendMessage($this->chatId, $message);
-
     }
 
     public function sell(): void
     {
-        // pass 
+        $instructions = $this->commandQueueStorage->getInstructions();
+
+        $payload = [
+            'epic' => $instructions['asset']['instrument']['epic'],
+            'direction' => 'SELL',
+            'size' => $instructions['size'],
+            'guaranteedStop' => false,
+        ];
+
+        $order = $this->positionsCapitalService->create($payload);
+        if (is_null($order)) {
+            $this->logger->critical('Connection with capital was lost BUY');
+            return;
+        }
+
+        $confirmation = $this->positionsCapitalService->confirm($order['body']['dealReference']);
+        if (is_null($confirmation)) {
+            $this->logger->critical('Connection with capital was lost confirmation');
+            return;
+        }
+
+        if ($confirmation['dealStatus'] !== 'ACCEPTED') {
+            // something went off
+        }
+
+        $confirmation['leverage'] = $instructions['asset']['instrument']['leverage'];
+        $confirmation['decimalPlaces'] = $instructions['asset']['snapshot']['decimalPlacesFactor'];
+        $message = $this->sellMessage($confirmation, $this->user->getBalance());
+
+        $this->tradingBotService->sendMessage($this->chatId, $message);
     }
 
     public function suspend(): void

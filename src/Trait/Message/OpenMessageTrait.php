@@ -149,4 +149,52 @@ Type /exit to cancel
 
         return $message;
     }
+
+    public function buyMessage(array $confirmation, float $userBalance): string
+    {
+        $liqPriceLong = $this->liquidationPrice($userBalance, $confirmation['size'], $confirmation['level'], $confirmation['leverage']);
+        
+        $liqPriceLongFormatted = $this->formatLiqPrice($liqPriceLong, $confirmation['decimalPlaces']);
+        $userBalanceFormatted = number_format($userBalance, 2);
+        $message = "
+Your order was accepted ✅
+---------------------------------------
+<b>{$confirmation['epic']}</b>
+Entry price: {$confirmation['level']}
+Size: {$confirmation['size']}
+Direction: BUY
+DR code: {$confirmation['dealReference']}
+
+---------------------------------------
+Balance: $$userBalanceFormatted
+Margin Balance: $100
+Estimated Liq. Price: $liqPriceLongFormatted
+";
+
+        return $message;
+    }
+
+    public function sellMessage(array $confirmation, float $userBalance): string
+    {
+        $liqPriceLong = $this->liquidationPrice($userBalance, $confirmation['size'], $confirmation['level'], $confirmation['leverage'], false);
+        
+        $liqPriceLongFormatted = $this->formatLiqPrice($liqPriceLong, $confirmation['decimalPlaces']);
+        $userBalanceFormatted = number_format($userBalance, 2);
+        $message = "
+Your order was accepted ✅
+---------------------------------------
+<b>{$confirmation['epic']}</b>
+Entry price: {$confirmation['level']}
+Size: {$confirmation['size']}
+Direction: SELL
+DR code: {$confirmation['dealReference']}
+
+---------------------------------------
+Balance: $$userBalanceFormatted
+Margin Balance: $100
+Estimated Liq. Price: $liqPriceLongFormatted
+";
+
+        return $message;
+    }
 }

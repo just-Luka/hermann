@@ -95,8 +95,10 @@ final class TradingController extends AbstractController
                         $amount = $this->sanitizeFloatInput($text);
                         if (strtoupper($text) === 'BUY') {
                             $openCommunication->buy();
+                            $tradingBotCommand->exit(true);
                         } elseif (strtoupper($text) === 'SELL') {
-                            // Verkaufen
+                            $openCommunication->sell();
+                            $tradingBotCommand->exit(true);
                         } elseif (is_float($amount)) {
                             $openCommunication->amountConfirm($amount);
                         } else {

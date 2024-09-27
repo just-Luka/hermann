@@ -67,10 +67,11 @@ final class TradingBotCommand
         $currentBalance = $user->getBalance();
 
         $message = "
+🟩🟥
 Welcome to Hermann Trading!
 
-Here you can with just few commands 
-BUY and SELL more then 3000 assets.
+Here, with just a few commands, you can
+<b>BUY</b> and <b>SELL</b> more than 3,000 assets.
 Trade: Crypto, Stocks, Forex, Indices, Commodities and more ...
 
 ------------------------------
@@ -82,7 +83,7 @@ Assets: <b>0</b>
 ------------------------------
 
 Available Commands:
-1. View your profile and balance: /me
+1. Check profile and balance: /me
 2. Make a deposit: /deposit
 3. Withdraw funds: /withdraw
 4. Open a new trade: /open
