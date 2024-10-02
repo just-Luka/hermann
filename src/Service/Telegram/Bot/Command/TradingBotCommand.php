@@ -133,6 +133,43 @@ Type: <b>Bitcoin</b>, <b>ETH</b>, <b>Tesla</b>, <b>USD/EUR</b>, <b>Gold</b>
         $this->tradingBotService->sendMessage($this->chatId, $message);
     }
 
+    public function deposit(): void
+    {
+        $sender = $this->sender;
+        $user = $this->userRepository->findByTelegramId($sender['id']);
+
+        $instructions = [
+            'type' => 'deposit',
+            'payment_methods' => [
+                'USDT',
+                // 'BTC',
+                // 'ETH',
+            ],
+            'choosen_payment' => '',
+        ];
+
+        $commandQueueStorage = new CommandQueueStorage();
+        $commandQueueStorage->setUser($user);
+        $commandQueueStorage->setCommandName(__FUNCTION__);
+        $commandQueueStorage->setLastQuestion(CommandQueueStorage::QUESTION_DEPOSIT);
+        $commandQueueStorage->setInstructions($instructions);
+        $commandQueueStorage->setCount(0);
+        $commandQueueStorage->setCreatedAt(new DateTimeImmutable());
+        $commandQueueStorage->setUpdatedAt(new DateTimeImmutable());
+
+        $this->entityManager->persist($commandQueueStorage);
+        $this->entityManager->flush();
+
+        $message = "
+Please choose a deposit method:
+
+1️. <b>USDT - TRC-20</b>
+2️. <b>Bitcoin (Soon)</b>
+3️. <b>Ethereum (Soon)</b>
+";
+        $this->tradingBotService->sendMessage($this->chatId, $message);
+    }
+
     public function exit($hideMessage = false): void
     {
         $sender = $this->sender;

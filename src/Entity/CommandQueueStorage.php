@@ -16,6 +16,10 @@ class CommandQueueStorage
     public const QUESTION_TYPING_AMOUNT = 'TYPING_AMOUNT';
     public const QUESTION_CONFIRMING_AMOUNT = 'CONFIRMING_AMOUNT'; // BUY oder sell
     
+    // Command - /deposit
+    public const QUESTION_DEPOSIT = 'CHOOSING_DEPOSIT';
+    public const QUESTION_TYPING_USD_AMOUNT = 'TYPING_USD_AMOUNT';
+    
     #[ORM\Id]
     #[ORM\GeneratedValue]
     #[ORM\Column]

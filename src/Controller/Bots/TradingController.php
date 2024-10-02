@@ -7,8 +7,10 @@ namespace App\Controller\Bots;
 use App\Entity\CommandQueueStorage;
 use App\Repository\CommandQueueStorageRepository;
 use App\Repository\UserRepository;
+use App\Service\Crypto\Tron\TronAccountService;
 use App\Service\Telegram\Bot\Communication\OpenCommunication;
 use App\Service\Telegram\Bot\Command\TradingBotCommand;
+use App\Service\Telegram\Bot\Communication\DepositCommunication;
 use App\Service\Translation\TranslationService;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -32,6 +34,8 @@ final class TradingController extends AbstractController
         CommandQueueStorageRepository $commandQueueStorage, 
         UserRepository $userRepository, 
         OpenCommunication $openCommunication,
+        DepositCommunication $depositCommunication,
+        TronAccountService $tronAccountService,
     ): JsonResponse
     {
         $update = json_decode($request->getContent(), true);
@@ -58,10 +62,14 @@ final class TradingController extends AbstractController
                 $tradingBotCommand->exit(true);
                 $tradingBotCommand->open();
                 return $this->json('OK');
+            } elseif($command === 'deposit') {
+                $tradingBotCommand->exit(true);
+                $tradingBotCommand->deposit();
+                return $this->json('OK');
             } elseif($command === 'exit') {
                 $tradingBotCommand->exit();
                 return $this->json('OK');
-            }
+            } 
 
             // If there is no match for any command, then :
             $text = $command;
@@ -105,6 +113,13 @@ final class TradingController extends AbstractController
                             // Etwas anderes
                             // %count + + +
                         }
+                    }
+                } elseif ($storage->getCommandName() === 'deposit') {
+                    $depositCommunication->setup($chatId, $storage, $user);
+                    if ($storage->getLastQuestion() === CommandQueueStorage::QUESTION_DEPOSIT) {
+                        $depositCommunication->amount($text);
+                    } elseif ($storage->getLastQuestion() === CommandQueueStorage::QUESTION_TYPING_USD_AMOUNT) {
+                        $depositCommunication->createCryptoPayment($text);
                     }
                 }
             }
