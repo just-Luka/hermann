@@ -109,6 +109,33 @@ trait CalculationTrait
             return ($positionValue + ($userBalance * $securingMargin - $initialMargin)) / $size;
         }
     }
+    
+    /**
+     * Calculates new balance, based on current balance, new value and value decimals
+     *
+     * @param  float $currentBalance
+     * @param  int $value 
+     * @param  int $decimals
+     * @return float
+     */
+    public function addUSDBalance(float $currentBalance, int $value, int $decimals): float
+    {   
+        return $currentBalance + ($value / (10 ** $decimals));
+    }
+
+    /**
+     * Calculates new balance, based on current balance, new value and value decimals
+     *
+     * @param  float $currentBalance
+     * @param  int $value 
+     * @param  int $decimals
+     * @return float
+     */
+    public function minusUSDBalance(float $currentBalance, int $value, int $decimals): float
+    {   
+        return $currentBalance - ($value / (10 ** $decimals));
+    }
+
 
     /**
      * Applies custom rounding logic: negative values round away from zero, positive towards zero.

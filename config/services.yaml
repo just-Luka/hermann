@@ -42,10 +42,7 @@ services:
     App\Service\Telegram\Bot\TradingBotService:
         arguments:
             $token: '%env(TRADING_TELEGRAM_TOKEN)%'
-
-    # Capital Credentials injections
-    App\Service\Capital\CapitalService:
-        arguments:
-            $apiKey: '%env(CAPITAL_API)%'
-            $login: '%env(CAPITAL_LOGIN)%'
-            $password: '%env(CAPITAL_API_PASS)%'
+    
+    App\EventListener\Deposits\TRC20USDTListener:
+        tags:
+            - { name: 'kernel.event_listener', event: 'App\Event\DepositEvent', method: 'onTransfer' }

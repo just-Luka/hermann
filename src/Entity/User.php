@@ -47,6 +47,10 @@ class User implements UserInterface
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
     private float $balance = 0;
 
+    #[ORM\OneToOne(targetEntity: CapitalAccount::class)]
+    #[ORM\JoinColumn(nullable: true)]
+    private ?CapitalAccount $capital_account = null;
+
     public function getId(): ?int
     {
         return $this->id;
@@ -188,6 +192,20 @@ class User implements UserInterface
     public function getUserIdentifier(): string
     {
         return $this->username;   
+    }
+
+    // Getter for capital_account
+    public function getCapitalAccount(): ?CapitalAccount
+    {
+        return $this->capital_account;
+    }
+
+    // Setter for capital_account
+    public function setCapitalAccount(?CapitalAccount $capital_account): self
+    {
+        $this->capital_account = $capital_account;
+
+        return $this;
     }
 
     /**

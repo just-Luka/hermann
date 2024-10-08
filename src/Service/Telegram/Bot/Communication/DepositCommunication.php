@@ -6,6 +6,7 @@ namespace App\Service\Telegram\Bot\Communication;
 
 use App\Entity\CommandQueueStorage;
 use App\Entity\CryptoWallet;
+use App\Entity\QueuedDeposit;
 use App\Entity\User;
 use App\Repository\CryptoWalletRepository;
 use App\Service\Crypto\Tron\TronAccountService;
@@ -141,7 +142,7 @@ Max Available Deposit: <b>$20,000</b>
             }
 
             // TODO check if $createdWallet['isValid']
-            
+
             $cryptoWallet = new CryptoWallet();
             $cryptoWallet->setUser($this->user);
             $cryptoWallet->setCreatedAt(new DateTimeImmutable());
@@ -175,7 +176,16 @@ Address (Tron): <b>{$lastWallet->getAddressBase58()}</b>
 Processing takes up to 10-15 minutes.
         ";
         $this->tradingBotService->sendMessage($this->chatId, $message);
+        $this->tradingBotService->sendMessage($this->chatId, $lastWallet->getAddressBase58());
 
+        $queuedDeposit = new QueuedDeposit();
+        $queuedDeposit->setCryptoWallet($lastWallet);
+        $queuedDeposit->setCreatedAt(new DateTimeImmutable());
+        $queuedDeposit->setUpdatedAt(new DateTimeImmutable());
+        $queuedDeposit->setAmount((string) $instructions['amount']);
+
+        $this->entityManager->persist($queuedDeposit);
+        $this->entityManager->flush();
 
         // Exit after success
         // if ($this->commandQueueStorage) {
