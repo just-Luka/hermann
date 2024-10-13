@@ -4,20 +4,17 @@ declare(strict_types=1);
 
 namespace App\Service\Crypto\Tron;
 
-use App\Entity\Transaction;
 use App\Repository\CryptoWalletRepository;
 use App\Repository\QueuedDepositRepository;
 use App\Repository\UserRepository;
 use App\Trait\CalculationTrait;
-use DateTimeImmutable;
-use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Client;
 use IEXBase\TronAPI\Exception\TronException;
 use IEXBase\TronAPI\Tron;
 use Psr\Log\LoggerInterface;
 
-class TronAccountService
+final class TronAccountService
 {
     use CalculationTrait;
 
@@ -95,5 +92,7 @@ class TronAccountService
         } catch (\Exception $e) {
             // TODO CRITICAL ERROR: Deposit can not be checked 
         }
+
+        return null;
     }
 }

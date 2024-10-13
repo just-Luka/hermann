@@ -13,6 +13,7 @@ use App\Event\DepositEvent;
 use App\Repository\CapitalAccountRepository;
 use App\Repository\CryptoWalletRepository;
 use App\Service\Crypto\Tron\TronAccountService;
+use App\Service\Telegram\Bot\TradingBotService;
 use App\Trait\CalculationTrait;
 use DateTimeImmutable;
 use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
@@ -35,6 +36,7 @@ class TRC20USDTListener
         EntityManagerInterface $entityManager,
         CryptoWalletRepository $cryptoWalletRepository,
         CapitalAccountRepository $capitalAccountRepository,
+        private TradingBotService $tradingBotService,
     )
     {
         $this->logger = $logger;
@@ -42,6 +44,7 @@ class TRC20USDTListener
         $this->entityManager = $entityManager;
         $this->cryptoWalletRepository = $cryptoWalletRepository;
         $this->capitalAccountRepository = $capitalAccountRepository;
+        $this->tradingBotService = $tradingBotService;
     }
 
     public function onTransfer(DepositEvent $event): void
@@ -85,6 +88,7 @@ class TRC20USDTListener
                 $cryptoWalletRepository = $this->cryptoWalletRepository->findOneBy(['address_base58' => $transaction['to']]);
                 $newBalance = $this->addUSDBalance((float) $cryptoWalletRepository->getBalance(), (int) $transaction['value'], $transaction['token_info']['decimals']);
                 $cryptoWalletRepository->setBalance((string) $newBalance);
+                $cryptoWalletRepository->setLastTransactionAt(new DateTimeImmutable());
                 $this->entityManager->persist($cryptoWalletRepository);
                 
                 $user = $cryptoWalletRepository->getUser();
@@ -112,6 +116,8 @@ class TRC20USDTListener
                     $queuedCapitalDeposit->setStatus(QueuedCapitalDeposit::STATUS_AWAITING);
 
                     $this->entityManager->persist($queuedCapitalDeposit);
+
+                    $message = "⏳ Your deposit <b>\$$depositAmount</b> is processing...";
                 } else {
                     $capitalAccount->setAvailableBalance($this->minusUSDBalance($capitalBalance, (int) $transaction['value'], $transaction['token_info']['decimals']));
                     $capitalAccount->setAllocatedBalance($this->addUSDBalance($capitalAccount->getAllocatedBalance(), (int) $transaction['value'], $transaction['token_info']['decimals']));
@@ -121,6 +127,7 @@ class TRC20USDTListener
                     $newBalance = $this->addUSDBalance($user->getBalance(), (int) $transaction['value'], $transaction['token_info']['decimals']);
                     $user->setBalance($newBalance);
                     $this->entityManager->persist($user);
+                    $message = "✅ Your deposit <b>\$$depositAmount</b> has been processed!";
                 }
 
                 $queuedDeposit = $event->getQueuedDeposit();
@@ -131,6 +138,8 @@ class TRC20USDTListener
 
                 $this->entityManager->flush();
                 $this->entityManager->commit();
+
+                $this->tradingBotService->sendMessage((int) $user->getTelegramChatId(), $message);
             } catch(UniqueConstraintViolationException $e) { 
                 // Catch case when trying to add a duplicate transaction
                 $this->entityManager->rollback();
@@ -138,6 +147,8 @@ class TRC20USDTListener
                 $this->entityManager->rollback();
                 $this->logger->critical('Deposit checking failed: ' . $e->getMessage());
             }
+
+            $this->entityManager->close();
         }
     }
     

@@ -49,6 +49,9 @@ class CryptoWallet
     #[ORM\Column(type: Types::DECIMAL, precision: 30, scale: 8)]
     private ?string $balance = null;
 
+    #[ORM\Column(type: Types::DECIMAL, precision: 30, scale: 8)]
+    private ?string $network_balance = '0';
+
     #[ORM\Column(nullable: true)]
     private ?\DateTimeImmutable $last_transaction_at = null;
 
@@ -175,6 +178,18 @@ class CryptoWallet
         $this->balance = $balance;
 
         return $this;
+    }
+
+    public function setNetworkBalance(string $network_balance): static
+    {
+        $this->network_balance = $network_balance;
+
+        return $this;
+    }
+
+    public function getNetworkBalance(): ?string
+    {
+        return $this->network_balance;
     }
 
     public function getLastTransactionAt(): ?\DateTimeImmutable

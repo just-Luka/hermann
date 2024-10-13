@@ -132,9 +132,9 @@ Max Available Deposit: <b>$20,000</b>
 
         $lastWallet = $this->cryptoWalletRepository->findLastCreatedWalletByUser($this->user);
 
-        // TODO, generate new address if old address was created more then 24h ago.
+        if (is_null($lastWallet) || !is_null($lastWallet->getLastTransactionAt())) {
+            ### If user doesn't have wallet or his old wallet has already a transaction
 
-        if (is_null($lastWallet)) { // If User is new and still not have any wallet
             $createdWallet = $this->tronAccountService->createWallet();
             if (is_null($createdWallet)) {
                 $this->logger->critical('USDT wallet can not be created!');

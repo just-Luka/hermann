@@ -44,6 +44,9 @@ class User implements UserInterface
     #[ORM\Column(length: 255, nullable: true)]
     private ?string $telegram_hash = null;
 
+    #[ORM\Column(length: 15, nullable: true)]
+    private ?string $telegram_chat_id = null;
+
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
     private float $balance = 0;
 
@@ -160,6 +163,18 @@ class User implements UserInterface
     public function setTelegramHash(?string $telegram_hash): static
     {
         $this->telegram_hash = $telegram_hash;
+
+        return $this;
+    }
+
+    public function getTelegramChatId(): ?string
+    {
+        return $this->telegram_chat_id;
+    }
+
+    public function setTelegramChatId(?string $telegramChatId): self
+    {
+        $this->telegram_chat_id = $telegramChatId;
 
         return $this;
     }

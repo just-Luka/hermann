@@ -51,17 +51,19 @@ final class TradingBotCommand
 
         if (! $user) {
             $user = new User();
-            $user->setFirstName($sender['first_name'] ?? $sender['username'] ?? 'Guest');
-            $user->setLastName($sender['last_name'] ?? null);
-            $user->setUsername($sender['username'] ?? null);
             $user->setTelegramId((string) $sender['id']);
-            $user->setPhotoUrl($sender['photo_url'] ?? null);
             $user->setCreatedAt(new DateTimeImmutable());
-            $user->setUpdatedAt(new DateTimeImmutable());
-
-            $this->entityManager->persist($user);
-            $this->entityManager->flush();
         }
+
+        $user->setFirstName($sender['first_name'] ?? $sender['username'] ?? 'Guest');
+        $user->setLastName($sender['last_name'] ?? null);
+        $user->setUsername($sender['username'] ?? null);
+        $user->setTelegramChatId((string) $this->chatId);
+        $user->setPhotoUrl($sender['photo_url'] ?? null);
+        $user->setUpdatedAt(new DateTimeImmutable());
+        
+        $this->entityManager->persist($user);
+        $this->entityManager->flush();
 
         $firstName = $user->getFirstName();
         $currentBalance = $user->getBalance();
