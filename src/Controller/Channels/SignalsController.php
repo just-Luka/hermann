@@ -15,7 +15,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class SignalsController extends AbstractController
 {
-    private $telegramService;
+    private SignalsTelegramService $telegramService;
 
     public function __construct(SignalsTelegramService $telegramService)
     {

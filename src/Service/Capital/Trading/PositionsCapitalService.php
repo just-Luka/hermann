@@ -12,11 +12,11 @@ use Psr\Log\LoggerInterface;
 
 final class PositionsCapitalService
 {
-    private $capitalService;
-    private $logger;
-    private $client;
-    private $url;
-    private $confirmURL;
+    private CapitalService $capitalService;
+    private LoggerInterface $logger;
+    private Client $client;
+    private string $url;
+    private string $confirmURL;
 
     public function __construct(CapitalService $capitalService, LoggerInterface $logger)
     {

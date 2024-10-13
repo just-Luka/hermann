@@ -19,7 +19,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class AuthController extends AbstractController
 {
-    private $logger;
+    private LoggerInterface $logger;
 
     public function __construct(
         LoggerInterface $logger, 

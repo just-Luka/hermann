@@ -13,7 +13,7 @@ use Symfony\Component\Validator\Constraints\GreaterThan;
 use Symfony\Component\Validator\Constraints\Optional;
 use Symfony\Component\Validator\Constraints\Range;
 
-class TradingSignalType extends AbstractType
+final class TradingSignalType extends AbstractType
 {
     public function buildForm(FormBuilderInterface $builder, array $options): void
     {

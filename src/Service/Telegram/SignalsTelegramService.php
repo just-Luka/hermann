@@ -8,9 +8,9 @@ use GuzzleHttp\Client;
 
 class SignalsTelegramService
 {
-    private $botToken;
-    private $channelId;
-    private $client;
+    private string $botToken;
+    private string $channelId;
+    private Client $client;
 
     public function __construct(string $botToken, string $channelId)
     {

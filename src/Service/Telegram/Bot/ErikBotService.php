@@ -9,8 +9,8 @@ use GuzzleHttp\Client;
 class ErikBotService
 {
     private const WEBHOOK_SLUG = '/webhook_erik';
-    private $client;
-    private $token;
+    private Client $client;
+    private string $token;
 
     public function __construct(string $token)
     {

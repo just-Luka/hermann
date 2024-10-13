@@ -4,7 +4,7 @@ declare(strict_types=1);
 
 namespace App\Template;
 
-final class TradingSignalTemplate
+final readonly class TradingSignalTemplate
 {
     public static function default(): string
     {

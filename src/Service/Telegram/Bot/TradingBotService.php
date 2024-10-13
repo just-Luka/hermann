@@ -14,9 +14,9 @@ class TradingBotService implements Listenable
     use AppTrait;
 
     private const WEBHOOK_SLUG = '/webhook_trading';
-    private $client;
-    private $token;
-    private $logger;
+    private Client $client;
+    private string $token;
+    private LoggerInterface $logger;
 
     public function __construct(string $token, LoggerInterface $logger)
     {

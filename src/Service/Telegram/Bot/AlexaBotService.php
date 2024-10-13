@@ -15,9 +15,9 @@ class AlexaBotService implements Listenable, Multilingual
     use AppTrait;
 
     private const WEBHOOK_SLUG = '/webhook_alexa';
-    private $client;
-    private $token;
-    private $logger;
+    private Client $client;
+    private string $token;
+    private LoggerInterface $logger;
 
     public function __construct(string $token, LoggerInterface $logger)
     {

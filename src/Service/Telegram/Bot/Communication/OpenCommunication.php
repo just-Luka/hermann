@@ -18,15 +18,16 @@ final class OpenCommunication
 {
     use OpenMessageTrait;
 
-    private $logger;
-    private $tradingBotService;
-    private $chatId;
-    private $marketCapital;
-    private $accountCapitalService;
-    private $positionsCapitalService;
-    private $entityManager;
-    private $commandQueueStorage;
-    private $user;
+    private LoggerInterface $logger;
+    private TradingBotService $tradingBotService;
+    private MarketCapitalService $marketCapital;
+    private AccountCapitalService $accountCapitalService;
+    private PositionsCapitalService $positionsCapitalService;
+    private EntityManagerInterface $entityManager;
+
+    private int $chatId;
+    private CommandQueueStorage $commandQueueStorage;
+    private User $user;
 
     private array $limit = [
         'search' => 5,

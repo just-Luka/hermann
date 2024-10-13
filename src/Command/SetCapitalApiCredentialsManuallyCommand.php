@@ -16,7 +16,7 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'app:set-capital-api',
     description: 'Setting up capital api credentials manually in db',
 )]
-class SetCapitalApiCredentialsManuallyCommand extends Command
+final class SetCapitalApiCredentialsManuallyCommand extends Command
 {
     private EntityManagerInterface $entityManager;
 

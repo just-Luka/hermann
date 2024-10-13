@@ -7,7 +7,7 @@ namespace App\Event;
 use App\Entity\QueuedDeposit;
 use Symfony\Contracts\EventDispatcher\Event;
 
-class DepositEvent extends Event
+final class DepositEvent extends Event
 {
     private QueuedDeposit $queuedDeposit;
     private string $addressBase58;

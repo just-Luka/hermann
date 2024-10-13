@@ -14,9 +14,9 @@ use Symfony\Component\Console\Output\OutputInterface;
     name: 'app:telegram-bots-webhook-up',
     description: 'Setting up Telegram bot webhooks',
 )]
-class SetTelegramBotWebhooksCommand extends Command
+final class SetTelegramBotWebhooksCommand extends Command
 {
-    private $botServices;
+    private iterable $botServices;
 
     public function __construct(iterable $botServices)
     {

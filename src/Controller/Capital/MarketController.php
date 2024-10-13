@@ -14,7 +14,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class MarketController extends AbstractController
 {
-    private $marketCapital;
+    private MarketCapitalService $marketCapital;
 
     public function __construct(MarketCapitalService $marketCapital)
     {
@@ -28,6 +28,7 @@ final class MarketController extends AbstractController
 
         return $this->json($res);
     }
+    
     #[Route('/market-search', methods: ['GET'])]
     public function searchPairs(Request $request): JsonResponse
     {

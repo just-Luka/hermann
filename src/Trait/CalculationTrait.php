@@ -67,7 +67,7 @@ trait CalculationTrait
      * @param  float $rate
      * @return float
     */
-    public function overnightFeeWithAmount(float $amount, float $askPrice, float $rate)
+    public function overnightFeeWithAmount(float $amount, float $askPrice, float $rate): float
     {
         $feePercentage = (float) $_ENV['OVERNIGHT_FEE_PERCENT'];
         $overnightPositiveFeeDisabled = filter_var($_ENV['OVERNIGHT_POSITIVE_FEE_DISABLED'], FILTER_VALIDATE_BOOLEAN);

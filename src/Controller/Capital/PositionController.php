@@ -12,7 +12,7 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class PositionController extends AbstractController
 {
-    private $positionsCapital;
+    private PositionsCapitalService $positionsCapital;
 
     public function __construct(PositionsCapitalService $positionsCapital)
     {

@@ -11,10 +11,10 @@ use Psr\Log\LoggerInterface;
 
 final class MarketCapitalService
 {
-    private $capitalService;
-    private $logger;
-    private $client;
-    private $url;
+    private CapitalService $capitalService;
+    private LoggerInterface $logger;
+    private Client $client;
+    private string $url;
 
     public function __construct(CapitalService $capitalService, LoggerInterface $logger)
     {

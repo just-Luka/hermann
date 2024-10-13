@@ -20,14 +20,15 @@ final class DepositCommunication
 {
     use OpenMessageTrait;
 
-    private $logger;
-    private $tradingBotService;
-    private $chatId;
-    private $entityManager;
-    private $commandQueueStorage;
-    private $user;
+    private LoggerInterface $logger;
+    private TradingBotService $tradingBotService;
+    private EntityManagerInterface $entityManager;
     private TronAccountService $tronAccountService;
     private CryptoWalletRepository $cryptoWalletRepository;
+
+    private int $chatId;
+    private CommandQueueStorage $commandQueueStorage;
+    private User $user;
 
     private array $limit = [
         'choosing_deposit' => 3,
