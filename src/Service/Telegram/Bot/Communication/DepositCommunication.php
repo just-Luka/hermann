@@ -131,10 +131,10 @@ Max Available Deposit: <b>$20,000</b>
         $instructions = $this->commandQueueStorage->getInstructions();
         $instructions['amount'] = isset($this->fixedDeposit[$number - 1]) ? $this->fixedDeposit[$number - 1] : $number;
 
-        $lastWallet = $this->cryptoWalletRepository->findLastCreatedWalletByUser($this->user);
+        $userWallet = $this->cryptoWalletRepository->findLastCreatedWalletByUser($this->user);
 
-        if (is_null($lastWallet) || !is_null($lastWallet->getLastTransactionAt())) {
-            ### If user doesn't have wallet or his old wallet has already a transaction
+        if (is_null($userWallet)) {
+            ### If user doesn't have wallet
 
             $createdWallet = $this->tronAccountService->createWallet();
             if (is_null($createdWallet)) {
@@ -159,7 +159,7 @@ Max Available Deposit: <b>$20,000</b>
             $this->entityManager->persist($cryptoWallet);
             $this->entityManager->flush();
 
-            $lastWallet = $cryptoWallet;
+            $userWallet = $cryptoWallet;
         }
 
         $message = "
@@ -171,16 +171,16 @@ Max Available Deposit: <b>$20,000</b>
 
 ==========================
 Amount: <b>\${$instructions['amount']}</b>
-Address (Tron): <b>{$lastWallet->getAddressBase58()}</b>
+Address (Tron): <b>{$userWallet->getAddressBase58()}</b>
 ==========================
 
 Processing takes up to 10-15 minutes.
         ";
         $this->tradingBotService->sendMessage($this->chatId, $message);
-        $this->tradingBotService->sendMessage($this->chatId, $lastWallet->getAddressBase58());
+        $this->tradingBotService->sendMessage($this->chatId, $userWallet->getAddressBase58());
 
         $queuedDeposit = new QueuedDeposit();
-        $queuedDeposit->setCryptoWallet($lastWallet);
+        $queuedDeposit->setCryptoWallet($userWallet);
         $queuedDeposit->setCreatedAt(new DateTimeImmutable());
         $queuedDeposit->setUpdatedAt(new DateTimeImmutable());
         $queuedDeposit->setAmount((string) $instructions['amount']);

@@ -41,8 +41,16 @@ class CryptoWalletRepository extends ServiceEntityRepository
     //            ->getOneOrNullResult()
     //        ;
     //    }
-
-    public function findLastCreatedWalletByUser(User $user)
+    
+    /**
+     * Finds last created wallet
+     * (We decided, that each user will have his permanent wallet)
+     * (Therefore we just need to find if wallet exists or not)
+     * 
+     * @param  User $user
+     * @return CryptoWallet
+     */
+    public function findLastCreatedWalletByUser(User $user): ?CryptoWallet
     {
         return $this->createQueryBuilder('w')
             ->where('w.user = :user')

@@ -24,18 +24,12 @@ class TRC20USDTListener
 {
     use CalculationTrait;
 
-    private LoggerInterface $logger;
-    private TronAccountService $tronAccountService;
-    private EntityManagerInterface $entityManager;
-    private CryptoWalletRepository $cryptoWalletRepository;
-    private CapitalAccountRepository $capitalAccountRepository;
-
     public function __construct(
-        LoggerInterface $logger,
-        TronAccountService $tronAccountService,
-        EntityManagerInterface $entityManager,
-        CryptoWalletRepository $cryptoWalletRepository,
-        CapitalAccountRepository $capitalAccountRepository,
+        private LoggerInterface $logger,
+        private TronAccountService $tronAccountService,
+        private EntityManagerInterface $entityManager,
+        private CryptoWalletRepository $cryptoWalletRepository,
+        private CapitalAccountRepository $capitalAccountRepository,
         private TradingBotService $tradingBotService,
     )
     {
@@ -64,9 +58,9 @@ class TRC20USDTListener
                 continue;
             }
             
-            $this->entityManager->beginTransaction(); ### Begin transactions
-
             try {
+                $this->entityManager->beginTransaction(); ### Begin transactions
+
                 ### Add Transaction
                 $transactionEntity = new Transaction();
                 $transactionEntity->setCreatedAt(new DateTimeImmutable());
@@ -147,8 +141,6 @@ class TRC20USDTListener
                 $this->entityManager->rollback();
                 $this->logger->critical('Deposit checking failed: ' . $e->getMessage());
             }
-
-            $this->entityManager->close();
         }
     }
     
