@@ -50,7 +50,7 @@ class User implements UserInterface
     #[ORM\Column(type: 'decimal', precision: 10, scale: 2, options: ['default' => 0])]
     private float $balance = 0;
 
-    #[ORM\OneToOne(targetEntity: CapitalAccount::class)]
+    #[ORM\ManyToOne(targetEntity: CapitalAccount::class)]
     #[ORM\JoinColumn(nullable: true)]
     private ?CapitalAccount $capital_account = null;
 
@@ -172,7 +172,7 @@ class User implements UserInterface
         return $this->telegram_chat_id;
     }
 
-    public function setTelegramChatId(?string $telegramChatId): self
+    public function setTelegramChatId(?string $telegramChatId): static
     {
         $this->telegram_chat_id = $telegramChatId;
 
@@ -216,7 +216,7 @@ class User implements UserInterface
     }
 
     // Setter for capital_account
-    public function setCapitalAccount(?CapitalAccount $capital_account): self
+    public function setCapitalAccount(?CapitalAccount $capital_account): static
     {
         $this->capital_account = $capital_account;
 
