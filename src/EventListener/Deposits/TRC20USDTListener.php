@@ -134,9 +134,14 @@ class TRC20USDTListener
                 $this->entityManager->commit();
 
                 $this->tradingBotService->sendMessage((int) $user->getTelegramChatId(), $message);
-            } catch(UniqueConstraintViolationException $e) { 
-                // Catch case when trying to add a duplicate transaction
+            } catch (UniqueConstraintViolationException $e) {
+                // Handle unique constraint violation
                 $this->entityManager->rollback();
+        
+                // Log the error
+                $this->logger->critical('Deposit checking failed: Duplicate transaction ID.');
+        
+                throw new \Exception('Duplicate transaction ID.');
             } catch (\Exception $e) {
                 $this->entityManager->rollback();
                 $this->logger->critical('Deposit checking failed: ' . $e->getMessage());
