@@ -135,12 +135,8 @@ Max Available Deposit: <b>$20,000</b>
 
         if (is_null($userWallet)) {
             ### If user doesn't have wallet
-
-            $createdWallet = $this->tronAccountService->createWallet();
-            if (is_null($createdWallet)) {
-                $this->logger->critical('USDT wallet can not be created!');
-                return;
-            }
+            $this->tronAccountService->requestWalletCreation($this->user);
+            return; #TODO add consumer to receive created wallet
 
             // TODO check if $createdWallet['isValid']
 
