@@ -4,62 +4,58 @@ declare(strict_types=1);
 
 namespace App\Service\Crypto\Tron;
 
-use App\Repository\CryptoWalletRepository;
-use App\Repository\QueuedDepositRepository;
-use App\Repository\UserRepository;
+use App\Contract\Publishable;
+use App\Entity\User;
+use App\Service\RabbitMQ\RabbitMQClientService;
 use App\Trait\CalculationTrait;
-use Doctrine\ORM\EntityManagerInterface;
-use GuzzleHttp\Client;
-use IEXBase\TronAPI\Exception\TronException;
-use IEXBase\TronAPI\Tron;
+use PhpAmqpLib\Message\AMQPMessage;
 use Psr\Log\LoggerInterface;
 
-final class TronAccountService
+final class TronAccountService implements Publishable
 {
     use CalculationTrait;
-
-    private LoggerInterface $logger;
-    private EntityManagerInterface $entityManager;
-    private CryptoWalletRepository $cryptoWalletRepository;
-    private UserRepository $userRepository;
-    private QueuedDepositRepository $queuedDepositRepository;
+    private const EXCHANGE = "tron_events";
 
     public function __construct(
-        LoggerInterface $logger, 
-        EntityManagerInterface $entityManager, 
-        CryptoWalletRepository $cryptoWalletRepository, 
-        UserRepository $userRepository,
-        QueuedDepositRepository $queuedDepositRepository,
-    )
+        private readonly LoggerInterface $logger,
+        private readonly RabbitMQClientService $mqClient,
+    ) {}
+
+    public function publish(array $payload, string $routingKey): void
     {
-        $this->logger = $logger;
-        $this->entityManager = $entityManager;
-        $this->cryptoWalletRepository =  $cryptoWalletRepository;
-        $this->userRepository = $userRepository;
-        $this->queuedDepositRepository = $queuedDepositRepository;
+        $connection = $this->mqClient->getConnection();
+        $channel = $connection->channel();
+
+        $channel->exchange_declare(self::EXCHANGE, 'direct', false, true, false);
+        $message = new AMQPMessage(json_encode($payload), [
+            'content_type' => 'application/json',
+            'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
+        ]);
+
+        try {
+            $channel->basic_publish($message, self::EXCHANGE, $routingKey);
+            $this->logger->info("createWallet event published.");
+        } catch (\Exception $e) {
+            $this->logger->warning("Failed to publish createWallet event: " . $e->getMessage());
+        } finally {
+            $channel->close();
+        }
     }
-    
+
     /**
      * createWallet
-     * Creates USDT (Tron) wallet
-     * 
+     *
      * @return array
      */
-    public function createWallet(): ?array
+    public function requestWalletCreation(User $user): void
     {
-        try {
-            $tron = new Tron();
-            $generateAddress = $tron->generateAddress();
-            $isValid = $tron->isAddress($generateAddress->getAddress());
-    
-            return [
-                'data' => $generateAddress->getRawData(),
-                'isValid' => $isValid,
-            ];
-        } catch (TronException $e) {
-            // TODO CRITICAL ERROR: New deposit wallet can not be created
-            $this->logger->warning($e->getMessage());
-        }
+        $this->publish([
+                'type' => 'createWallet',
+                'user_id' => $user->getId(),
+                'timestamp' => time(),
+            ],
+            'createWallet',
+        );
     }
     
     /**
@@ -70,29 +66,30 @@ final class TronAccountService
      */
     public function getTRC20Transactions(string $addressBase58): ?array
     {
-        $tronGridApiUrl = "https://api.trongrid.io/v1/accounts/{$addressBase58}/transactions/trc20";
-
-        $client = new Client();
-
-        try {
-            $response = $client->request('GET', $tronGridApiUrl, [
-                'headers' => [
-                    'Accept' => 'application/json'
-                ]
-            ]);
-
-            if ($response->getStatusCode() === 200) {
-                $body = $response->getBody()->getContents();
-                $transactions = json_decode($body, true);
-
-                if (isset($transactions['data']) && count($transactions['data']) > 0) {
-                    return $transactions['data'];
-                }
-            }
-        } catch (\Exception $e) {
-            // TODO CRITICAL ERROR: Deposit can not be checked 
-        }
-
         return null;
+        // $tronGridApiUrl = "https://api.trongrid.io/v1/accounts/{$addressBase58}/transactions/trc20";
+
+        // $client = new Client();
+
+        // try {
+        //     $response = $client->request('GET', $tronGridApiUrl, [
+        //         'headers' => [
+        //             'Accept' => 'application/json'
+        //         ]
+        //     ]);
+
+        //     if ($response->getStatusCode() === 200) {
+        //         $body = $response->getBody()->getContents();
+        //         $transactions = json_decode($body, true);
+
+        //         if (isset($transactions['data']) && count($transactions['data']) > 0) {
+        //             return $transactions['data'];
+        //         }
+        //     }
+        // } catch (\Exception $e) {
+        //     // TODO CRITICAL ERROR: Deposit can not be checked 
+        // }
+
+        // return null;
     }
 }

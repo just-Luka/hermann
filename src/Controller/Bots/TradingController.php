@@ -20,15 +20,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 final class TradingController extends AbstractController
 {
-    private LoggerInterface $logger;
-    private TranslationService $translationService;
+    public function __construct(
+        private LoggerInterface $logger,
+        private TranslationService $translationService
+    ) {}
 
-    public function __construct(LoggerInterface $logger, TranslationService $translationService)
-    {
-        $this->logger = $logger;
-        $this->translationService = $translationService;
-    }
-    
     public function handleWebhook(
         Request $request, 
         TradingBotCommand $tradingBotCommand, 

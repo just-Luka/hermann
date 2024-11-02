@@ -46,3 +46,10 @@ services:
     App\EventListener\Deposits\TRC20USDTListener:
         tags:
             - { name: 'kernel.event_listener', event: 'App\Event\DepositEvent', method: 'onTransfer' }
+
+    App\Service\RabbitMQ\RabbitMQClientService:
+        arguments:
+            $host: '%env(AMQP_HOST)%'
+            $port: '%env(int:AMQP_PORT)%'
+            $user: '%env(AMQP_USER)%'
+            $password: '%env(AMQP_PASSWORD)%'
