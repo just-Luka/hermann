@@ -1,5 +1,5 @@
 # Dockerfile for PHP
-FROM php:8.3-fpm
+FROM php:8.2-fpm
 
 # Install dependencies
 RUN apt-get update && apt-get install -y \
@@ -11,7 +11,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
-    && docker-php-ext-install pdo pdo_mysql intl zip gd
+    && docker-php-ext-install pdo pdo_mysql intl zip gd \
+    && docker-php-ext-install sockets
 
 # Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
@@ -21,11 +22,11 @@ RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" &&
 
 WORKDIR /var/www/hermann
 
-# Set the permissions
-RUN chown -R www-data:www-data /var/www/hermann
-
 # Copy existing application directory to /var/www/symfony
 COPY . /var/www/hermann
+
+ENV COMPOSER_ALLOW_SUPERUSER=1
+RUN composer update --no-interaction --prefer-dist --optimize-autoloader
 
 # Expose port 8000 and start PHP-FPM server
 EXPOSE 8000

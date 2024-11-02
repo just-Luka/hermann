@@ -103,6 +103,9 @@
       <path value="$PROJECT_DIR$/vendor/simplito/bn-php" />
       <path value="$PROJECT_DIR$/vendor/simplito/elliptic-php" />
       <path value="$PROJECT_DIR$/vendor/simplito/bigint-wrapper-php" />
+      <path value="$PROJECT_DIR$/vendor/php-amqplib/php-amqplib" />
+      <path value="$PROJECT_DIR$/vendor/paragonie/random_compat" />
+      <path value="$PROJECT_DIR$/vendor/paragonie/constant_time_encoding" />
     </include_path>
   </component>
   <component name="PhpProjectSharedConfiguration" php_language_level="8.2" />
