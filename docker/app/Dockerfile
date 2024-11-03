@@ -11,8 +11,8 @@ RUN apt-get update && apt-get install -y \
     libpng-dev \
     libjpeg62-turbo-dev \
     libfreetype6-dev \
-    && docker-php-ext-install pdo pdo_mysql intl zip gd \
-    && docker-php-ext-install sockets
+    libpq-dev \
+    && docker-php-ext-install pdo pdo_pgsql intl zip gd sockets
 
 # Composer
 RUN php -r "copy('https://getcomposer.org/installer', 'composer-setup.php');" && \
@@ -28,6 +28,9 @@ COPY . /var/www/hermann
 ENV COMPOSER_ALLOW_SUPERUSER=1
 RUN composer update --no-interaction --prefer-dist --optimize-autoloader
 
-# Expose port 8000 and start PHP-FPM server
+RUN curl -sS https://get.symfony.com/cli/installer | bash && \
+    mv /root/.symfony*/bin/symfony /usr/local/bin/symfony
+
 EXPOSE 8000
-CMD ["php-fpm"]
+
+CMD ["symfony", "server:start", "--no-interaction", "--port=8000", "--dir=/var/www/hermann", "--allow-http", "--no-tls", "--listen-ip=0.0.0.0"]
