@@ -27,6 +27,16 @@ services:
     ports:
       - "5432:5432"
 
+  ngrok:
+    image: ngrok/ngrok:latest
+    environment:
+      NGROK_AUTHTOKEN: 2lndUyGqDXNTngZPet9iYI5MK09_7V7SCYgwLxVBDySCkP9YD
+    command: http app:8000  # Make sure this matches your app's exposed port
+    depends_on:
+      - app
+    ports:
+      - "4040:4040"
+
   redis:
     image: redis:alpine
     ports:
