@@ -8,6 +8,11 @@ webhook_trading:
     controller: App\Controller\Bots\TradingController::handleWebhook
     methods: [POST]
 
+webhook_payments:
+    path: /webhook_payments
+    controller: App\Controller\Bots\TradingController::handlePaymentWebhook
+    methods: [POST]
+
 # webhook_another_event:
 #     path: /webhook_another_event
 #     controller: App\Controller\WebhookController::handleAnotherEvent

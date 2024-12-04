@@ -5,6 +5,7 @@ declare(strict_types=1);
 namespace App\Controller\Bots;
 
 use App\Entity\CommandQueueStorage;
+use App\Event\HermannPaymentsEvent;
 use App\Repository\CommandQueueStorageRepository;
 use App\Repository\UserRepository;
 use App\Service\Crypto\Tron\TronAccountService;
@@ -15,6 +16,7 @@ use App\Service\Translation\TranslationService;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\JsonResponse;
 
@@ -129,6 +131,19 @@ final class TradingController extends AbstractController
         
 
         // MUST ALWAYS BE 200, otherwise webhooks goes in queue ...
+        return $this->json([], 200);
+    }
+
+    public function handlePaymentWebhook(
+        Request $request,
+        UserRepository $userRepository,
+        EventDispatcherInterface $dispatcher
+    ): JsonResponse
+    {
+        # TODO allow requests from only our IP address
+        $input = json_decode($request->getContent(), true);
+        $dispatcher->dispatch(new HermannPaymentsEvent($input));
+
         return $this->json([], 200);
     }
 

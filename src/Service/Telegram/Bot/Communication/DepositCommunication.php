@@ -11,6 +11,7 @@ use App\Entity\User;
 use App\Repository\CryptoWalletRepository;
 use App\Service\Crypto\Tron\TronAccountService;
 use App\Service\Telegram\Bot\TradingBotService;
+use App\Trait\Message\DepositMessageTrait;
 use App\Trait\Message\OpenMessageTrait;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
@@ -18,7 +19,7 @@ use Psr\Log\LoggerInterface;
 
 final class DepositCommunication
 {
-    use OpenMessageTrait;
+    use DepositMessageTrait;
 
     private LoggerInterface $logger;
     private TradingBotService $tradingBotService;
@@ -129,50 +130,18 @@ Max Available Deposit: <b>$20,000</b>
         }
 
         $instructions = $this->commandQueueStorage->getInstructions();
-        $instructions['amount'] = isset($this->fixedDeposit[$number - 1]) ? $this->fixedDeposit[$number - 1] : $number;
+        $instructions['amount'] = $this->fixedDeposit[$number - 1] ?? $number;
 
         $userWallet = $this->cryptoWalletRepository->findLastCreatedWalletByUser($this->user);
 
         if (is_null($userWallet)) {
             ### If user doesn't have wallet
             $this->tronAccountService->requestWalletCreation($this->user);
-            return; #TODO add consumer to receive created wallet
-
-            // TODO check if $createdWallet['isValid']
-
-            $cryptoWallet = new CryptoWallet();
-            $cryptoWallet->setUser($this->user);
-            $cryptoWallet->setCreatedAt(new DateTimeImmutable());
-            $cryptoWallet->setUpdatedAt(new DateTimeImmutable());
-            $cryptoWallet->setCoinName(CryptoWallet::COIN_NAME_USDT);
-            $cryptoWallet->setNetwork(CryptoWallet::NETWORK_TRC20);
-            $cryptoWallet->setAddressBase58($createdWallet['data']['address_base58']);
-            $cryptoWallet->setAddressHex($createdWallet['data']['address_hex']);
-            $cryptoWallet->setPrivateKey($createdWallet['data']['private_key']);
-            $cryptoWallet->setPublicKey($createdWallet['data']['public_key']);
-            $cryptoWallet->setBalance('0');
-
-            $this->entityManager->persist($cryptoWallet);
-            $this->entityManager->flush();
-
-            $userWallet = $cryptoWallet;
+            # TODO send notification to telegram and perform queue actions
+            return;
         }
 
-        $message = "
-<b>To process your Tether (USDT) TRC-20 payment successfully:</b>
-
-- <b>Send the exact USDT amount</b> to the specified address.
-- <b>Use only Tron network</b> for your transfer.
-- <b>Generate a new payment for</b> each deposit.
-
-==========================
-Amount: <b>\${$instructions['amount']}</b>
-Address (Tron): <b>{$userWallet->getAddressBase58()}</b>
-==========================
-
-Processing takes up to 10-15 minutes.
-        ";
-        $this->tradingBotService->sendMessage($this->chatId, $message);
+        $this->tradingBotService->sendMessage($this->chatId, $this->createCryptoPaymentMessage($instructions, $userWallet));
         $this->tradingBotService->sendMessage($this->chatId, $userWallet->getAddressBase58());
 
         $queuedDeposit = new QueuedDeposit();

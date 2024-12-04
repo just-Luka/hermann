@@ -47,7 +47,7 @@ class CryptoWallet
     private ?string $public_key = null;
 
     #[ORM\Column(type: Types::DECIMAL, precision: 30, scale: 8)]
-    private ?string $balance = null;
+    private ?string $balance = '0';
 
     #[ORM\Column(type: Types::DECIMAL, precision: 30, scale: 8)]
     private ?string $network_balance = '0';

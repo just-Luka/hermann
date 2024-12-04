@@ -47,6 +47,10 @@ services:
         tags:
             - { name: 'kernel.event_listener', event: 'App\Event\DepositEvent', method: 'onTransfer' }
 
+    App\EventSubscriber\HermannPaymentsEventSubscriber:
+        tags:
+            - { name: 'kernel.event_subscriber', event: 'App\Event\HermannPaymentsEvent'}
+
     App\Service\RabbitMQ\RabbitMQClientService:
         arguments:
             $host: '%env(AMQP_HOST)%'

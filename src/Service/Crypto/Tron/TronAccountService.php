@@ -21,27 +21,6 @@ final class TronAccountService implements Publishable
         private readonly RabbitMQClientService $mqClient,
     ) {}
 
-    public function publish(array $payload, string $routingKey): void
-    {
-        $connection = $this->mqClient->getConnection();
-        $channel = $connection->channel();
-
-        $channel->exchange_declare(self::EXCHANGE, 'direct', false, true, false);
-        $message = new AMQPMessage(json_encode($payload), [
-            'content_type' => 'application/json',
-            'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
-        ]);
-
-        try {
-            $channel->basic_publish($message, self::EXCHANGE, $routingKey);
-            $this->logger->info("createWallet event published.");
-        } catch (\Exception $e) {
-            $this->logger->warning("Failed to publish createWallet event: " . $e->getMessage());
-        } finally {
-            $channel->close();
-        }
-    }
-
     /**
      * createWallet
      *
@@ -91,5 +70,26 @@ final class TronAccountService implements Publishable
         // }
 
         // return null;
+    }
+
+    public function publish(array $payload, string $routingKey): void
+    {
+        $connection = $this->mqClient->getConnection();
+        $channel = $connection->channel();
+
+        $channel->exchange_declare(self::EXCHANGE, 'direct', false, true, false);
+        $message = new AMQPMessage(json_encode($payload), [
+            'content_type' => 'application/json',
+            'delivery_mode' => AMQPMessage::DELIVERY_MODE_PERSISTENT,
+        ]);
+
+        try {
+            $channel->basic_publish($message, self::EXCHANGE, $routingKey);
+            $this->logger->info("createWallet event published.");
+        } catch (\Exception $e) {
+            $this->logger->warning("Failed to publish createWallet event: " . $e->getMessage());
+        } finally {
+            $channel->close();
+        }
     }
 }
