@@ -9,6 +9,7 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Component\Console\Attribute\AsCommand;
 use Symfony\Component\Console\Command\Command;
+use Symfony\Component\Console\Input\InputArgument;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 
@@ -18,29 +19,44 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 final class SetCapitalApiCredentialsManuallyCommand extends Command
 {
-    private EntityManagerInterface $entityManager;
-
-    public function __construct(EntityManagerInterface $entityManager)
+    public function __construct(
+        private readonly EntityManagerInterface $entityManager
+    )
     {
         parent::__construct();
-        $this->entityManager = $entityManager;
     }
 
+    /**
+     * @return void
+     */
     protected function configure(): void
     {
-        $this->setDescription('');
+        $this
+            ->setDescription('Save CST and X-Security tokens to the database.')
+            ->addArgument('cst', InputArgument::REQUIRED, 'The CST token')
+            ->addArgument('xSecurityToken', InputArgument::REQUIRED, 'The X-Security token');
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
-        $capitalSecurity = new CapitalSecurity();
-        $capitalSecurity->setCst('7Rm0cdHIt8BAnf5VSSH9xhNj');
-        $capitalSecurity->setXSecurityToken('bdw5Mmgs3htvlXeZ3Ao9AgzPd9dE3oP');
-        $capitalSecurity->setCreatedAt(new DateTimeImmutable());
-        $capitalSecurity->setUpdatedAt(new DateTimeImmutable());
+        $cst = $input->getArgument('cst');
+        $xSecurityToken = $input->getArgument('xSecurityToken');
+
+        $capitalSecurity = (new CapitalSecurity())
+            ->setCst($cst)
+            ->setXSecurityToken($xSecurityToken)
+            ->setCreatedAt(new DateTimeImmutable())
+            ->setUpdatedAt(new DateTimeImmutable());
 
         $this->entityManager->persist($capitalSecurity);
         $this->entityManager->flush();
+
+        $output->writeln('Capital API credentials have been saved.');
 
         return Command::SUCCESS;
     }

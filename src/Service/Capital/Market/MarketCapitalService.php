@@ -11,35 +11,31 @@ use Psr\Log\LoggerInterface;
 
 final class MarketCapitalService
 {
-    private CapitalService $capitalService;
-    private LoggerInterface $logger;
     private Client $client;
     private string $url;
 
-    public function __construct(CapitalService $capitalService, LoggerInterface $logger)
+    public function __construct(
+        private readonly CapitalService $capitalService,
+        private readonly LoggerInterface $logger
+    )
     {
-        $this->capitalService = $capitalService;
-        $this->logger = $logger;
         $this->client = new Client();
         $this->url = $capitalService->url() . '/markets';
     }
 
-    public function pairsSearch($keyword): ?array
+    public function pairsSearch(string $keyword): ?array
     {
         try {
-            // Define query parameters
             $queryParams = [
                 'searchTerm' => $keyword,
                 'epics' => 'SILVER,NATURALGAS',
             ];
     
-            // Make the GET request with query parameters
             $response = $this->client->request('GET', $this->url, [
                 'headers' => $this->capitalService->cHeader(),
                 'query' => $queryParams, // Guzzle will append these as query string
             ]);
     
-            // Parse the response body
             $body = json_decode($response->getBody()->getContents(), true);
     
             return $body;
@@ -56,14 +52,13 @@ final class MarketCapitalService
 
             return null;
         } catch (\Exception $e) {
-            // General exception handling
             $this->logger->error('An unexpected error occurred: ' . $e->getMessage());
     
             return null;
         }
     }
     
-    public function singleMarketInfo($epic): ?array
+    public function singleMarketInfo(string $epic): ?array
     {
         try {
             $url = $this->url . "/{$epic}";
@@ -71,7 +66,6 @@ final class MarketCapitalService
                 'headers' => $this->capitalService->cHeader(),
             ]);
 
-            // Parse the response body
             $body = json_decode($response->getBody()->getContents(), true);
 
             return $body;
@@ -87,7 +81,6 @@ final class MarketCapitalService
             }
             return null;
         } catch (\Exception $e) {
-            // General exception handling
             $this->logger->error('An unexpected error occurred: ' . $e->getMessage());
 
             return null;

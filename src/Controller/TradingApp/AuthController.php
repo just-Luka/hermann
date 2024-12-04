@@ -19,44 +19,48 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class AuthController extends AbstractController
 {
-    private LoggerInterface $logger;
-
-    public function __construct(
-        LoggerInterface $logger, 
-    )
-    {
-        $this->logger = $logger;
-    }
-    
-
+    /**
+     * @param Request $request
+     * @param JWTTokenManagerInterface $jwtManager
+     * @param UserRepository $userRepository
+     * @param EntityManagerInterface $entityManager
+     * @param TradingBotService $tradingBotService
+     * @return JsonResponse
+     */
     #[Route('/tg-auth', methods: ['POST'])]
-    public function authorization(Request $request, JWTTokenManagerInterface $jwtManager, UserRepository $userRepository, EntityManagerInterface $entityManager, TradingBotService $tradingBotService): JsonResponse
+    public function authorization(
+        Request $request,
+        JWTTokenManagerInterface $jwtManager,
+        UserRepository $userRepository,
+        EntityManagerInterface $entityManager,
+        TradingBotService $tradingBotService
+    ): JsonResponse
     {
         $data = json_decode($request->getContent(), true);
        
         if (! $tradingBotService->isValidTelegramAuth($data)) {
-            throw new BadRequestHttpException('Invalid Telegram authentication data');
+            $this->json('Bad request', 400);
         }
             
         $user = $userRepository->findByTelegramId($data['id']);
         if (! $user) { // Register new user
-            $user = new User();
-            $user->setFirstName($data['first_name'] ?? $data['username'] ?? 'No name');
-            $user->setLastName($data['last_name'] ?? null);
-            $user->setUsername($data['username'] ?? null);
-            $user->setTelegramId((string) $data['id']);
-            $user->setPhotoUrl($data['photo_url'] ?? null);
-            $user->setTelegramAuthDate((string) $data['auth_date']);
-            $user->setTelegramHash($data['hash']);
-            $user->setCreatedAt(new DateTimeImmutable());
-            $user->setUpdatedAt(new DateTimeImmutable());
+            $user = (new User())
+                ->setTelegramId($data['id'])
+                ->setLastName($data['last_name'] ?? null)
+                ->setUsername($data['username'] ?? null)
+                ->setTelegramId((string) $data['id'])
+                ->setPhotoUrl($data['photo_url'] ?? null)
+                ->setTelegramAuthDate((string) $data['auth_date'])
+                ->setTelegramHash($data['hash'])
+                ->setCreatedAt(new DateTimeImmutable())
+                ->setUpdatedAt(new DateTimeImmutable());
 
             $entityManager->persist($user);
             $entityManager->flush();
         }
 
         $token = $jwtManager->create($user);
-        $this->logger->warning($token);
+
         return $this->json([
             'status' => 'ok',
             'token' => $token,

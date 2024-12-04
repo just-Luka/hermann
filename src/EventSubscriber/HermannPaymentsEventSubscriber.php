@@ -33,8 +33,8 @@ final readonly class HermannPaymentsEventSubscriber implements EventSubscriberIn
     {
         $payload = $event->getPayload();
         if ($payload['type'] !== __FUNCTION__) return;
-        $user = $this->userRepository->findOneBy(['id' => $payload['user_id']]);
 
+        $user = $this->userRepository->findOneBy(['id' => $payload['user_id']]);
         $cryptoWallet = (new CryptoWallet())
             ->setUser($user)
             ->setCreatedAt(new \DateTimeImmutable())

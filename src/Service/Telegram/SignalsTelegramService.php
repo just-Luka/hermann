@@ -5,17 +5,17 @@ declare(strict_types=1);
 namespace App\Service\Telegram;
 
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\RequestException;
 
-class SignalsTelegramService
+final readonly class SignalsTelegramService
 {
-    private string $botToken;
-    private string $channelId;
     private Client $client;
 
-    public function __construct(string $botToken, string $channelId)
+    public function __construct(
+        private string $botToken,
+        private string $channelId
+    )
     {
-        $this->botToken = $botToken;
-        $this->channelId = $channelId;
         $this->client = new Client();
     }
 
@@ -28,6 +28,12 @@ class SignalsTelegramService
             'parse_mode' => 'HTML',
         ];
 
-        $this->client->post($url, ['form_params' => $payload]);
+        try {
+            $this->client->post($url, ['form_params' => $payload]);
+        } catch (RequestException $e) {
+            throw new \RuntimeException(
+                'Failed to send Telegram message: ' . $e->getMessage(),
+            );
+        }
     }
 }

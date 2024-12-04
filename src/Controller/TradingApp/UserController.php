@@ -15,14 +15,6 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
 final class UserController extends AbstractController
 {
-    private LoggerInterface $logger;
-
-    public function __construct(LoggerInterface $logger)
-    {
-        $this->logger = $logger;
-    }
-    
-
     #[Route('/me', methods: ['GET'])]
     public function me(Request $request, JWTTokenManagerInterface $jwtManager, UserRepository $userRepository): JsonResponse
     {

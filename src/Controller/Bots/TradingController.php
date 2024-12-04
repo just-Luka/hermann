@@ -13,6 +13,7 @@ use App\Service\Telegram\Bot\Communication\OpenCommunication;
 use App\Service\Telegram\Bot\Command\TradingBotCommand;
 use App\Service\Telegram\Bot\Communication\DepositCommunication;
 use App\Service\Translation\TranslationService;
+use App\Trait\Message\Formatter\MessageFormatterTrait;
 use Exception;
 use Psr\Log\LoggerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -22,9 +23,11 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 final class TradingController extends AbstractController
 {
+    use MessageFormatterTrait;
+
     public function __construct(
-        private LoggerInterface $logger,
-        private TranslationService $translationService
+        private readonly LoggerInterface $logger,
+        private readonly TranslationService $translationService
     ) {}
 
     public function handleWebhook(
@@ -34,19 +37,18 @@ final class TradingController extends AbstractController
         UserRepository $userRepository, 
         OpenCommunication $openCommunication,
         DepositCommunication $depositCommunication,
-        TronAccountService $tronAccountService,
     ): JsonResponse
     {
         try {
             $update = json_decode($request->getContent(), true);
 
-            if (isset($update['message'])) { // Handle when user sends message to bot
+            if (isset($update['message'])) {
                 $chatId = $update['message']['chat']['id'];
                 $command = ltrim($update['message']['text'], '/');
     
                 $sender = $update['message']['from'];
                 $languageCode = $sender['language_code'];
-                $telegramId = $sender['id']; // User Telegram ID
+                $telegramId = $sender['id'];
     
                 if ($sender['is_bot']) {
                     return $this->json('Bot communication not supported yet!');
@@ -74,7 +76,7 @@ final class TradingController extends AbstractController
                 // If there is no match for any command, then :
                 $text = $command;
                 
-                // Check if user in proccess of communication.
+                // Check if user in process of communication.
                 // That means he already typed some /command, our bot waits for something!
                 $user = $userRepository->findByTelegramId($telegramId);
                 $storage = $commandQueueStorage->findOneBy(['user' => $user]);
@@ -110,7 +112,6 @@ final class TradingController extends AbstractController
                             } elseif (is_float($amount)) {
                                 $openCommunication->amountConfirm($amount);
                             } else {
-                                // Etwas anderes
                                 // %count + + +
                             }
                         }
@@ -125,7 +126,6 @@ final class TradingController extends AbstractController
                 }
             }
         } catch (Exception $e) {
-            // Ein Fehler ist aufgetreten
             $this->logger->critical('Important Error!');
         }
         
@@ -136,7 +136,6 @@ final class TradingController extends AbstractController
 
     public function handlePaymentWebhook(
         Request $request,
-        UserRepository $userRepository,
         EventDispatcherInterface $dispatcher
     ): JsonResponse
     {
@@ -145,16 +144,5 @@ final class TradingController extends AbstractController
         $dispatcher->dispatch(new HermannPaymentsEvent($input));
 
         return $this->json([], 200);
-    }
-
-    private function sanitizeFloatInput(string $input): float|string
-    {
-        $input = trim($input);
-        $normalizedInput = str_replace(',', '.', $input);
-        if (is_numeric($normalizedInput)) {
-            return floatval($normalizedInput);
-        }
-
-        return $input;
     }
 }

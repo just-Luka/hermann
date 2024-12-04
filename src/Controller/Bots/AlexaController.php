@@ -13,28 +13,21 @@ use Symfony\Component\HttpFoundation\JsonResponse;
 
 final class AlexaController extends AbstractController
 {
-    private LoggerInterface $logger;
-    private TranslationService $translationService;
+    public function __construct(
+        private readonly LoggerInterface $logger,
+        private readonly TranslationService $translationService
+    ) {}
 
-    public function __construct(LoggerInterface $logger, TranslationService $translationService)
-    {
-        $this->logger = $logger;
-        $this->translationService = $translationService;
-    }
-    
     /**
-     * handleWebhook
-     * Will be core for all webhooks, probably move in separte class
-     * 
-     * @param  Request $request
-     * @param  AlexaBotService $alexaService
+     * @param Request $request
+     * @param AlexaBotService $alexaService
      * @return JsonResponse
      */
     public function handleWebhook(Request $request, AlexaBotService $alexaService): JsonResponse
     {
         $update = json_decode($request->getContent(), true);
 
-        if (isset($update['message'])) { // Handle when user sends message to bot
+        if (isset($update['message'])) {
             $chatId = $update['message']['chat']['id'];
             $command = ltrim($update['message']['text'], '/');
             $languageCode = $update['message']['from']['language_code'];
@@ -43,7 +36,7 @@ final class AlexaController extends AbstractController
                 ->setLanguage($languageCode)
                 ->trans($command);
 
-            if (! $message) { // Command not exists
+            if (! $message) {
                 return $this->json([], 200);
             }
 

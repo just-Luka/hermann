@@ -20,7 +20,7 @@ use Doctrine\DBAL\Exception\UniqueConstraintViolationException;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-class TRC20USDTListener
+final readonly class TRC20USDTListener
 {
     use CalculationTrait;
 
@@ -31,15 +31,7 @@ class TRC20USDTListener
         private CryptoWalletRepository $cryptoWalletRepository,
         private CapitalAccountRepository $capitalAccountRepository,
         private TradingBotService $tradingBotService,
-    )
-    {
-        $this->logger = $logger;
-        $this->tronAccountService = $tronAccountService;
-        $this->entityManager = $entityManager;
-        $this->cryptoWalletRepository = $cryptoWalletRepository;
-        $this->capitalAccountRepository = $capitalAccountRepository;
-        $this->tradingBotService = $tradingBotService;
-    }
+    ) {}
 
     public function onTransfer(DepositEvent $event): void
     {
@@ -62,20 +54,21 @@ class TRC20USDTListener
                 $this->entityManager->beginTransaction(); ### Begin transactions
 
                 ### Add Transaction
-                $transactionEntity = new Transaction();
-                $transactionEntity->setCreatedAt(new DateTimeImmutable());
-                $transactionEntity->setUpdatedAt(new DateTimeImmutable());
-                $transactionEntity->setExTransactionId($transaction['transaction_id']);
-                $transactionEntity->setSymbol($transaction['token_info']['symbol']);
-                $transactionEntity->setTokenAddress($transaction['token_info']['address']);
-                $transactionEntity->setDecimals($transaction['token_info']['decimals']);
-                $transactionEntity->setBlockTimestamp($transaction['block_timestamp']);
-                $transactionEntity->setFrom($transaction['from']);
-                $transactionEntity->setTo($transaction['to']);
-                $transactionEntity->setExType($transaction['type']);
-                $transactionEntity->setValue($transaction['value']);
-                $transactionEntity->setStatus(Transaction::STATUS_COMPLETED);
-                $transactionEntity->setType(Transaction::TYPE_DEPOSIT);
+                $transactionEntity = (new Transaction())
+                    ->setCreatedAt(new DateTimeImmutable())
+                    ->setUpdatedAt(new DateTimeImmutable())
+                    ->setExTransactionId($transaction['transaction_id'])
+                    ->setSymbol($transaction['token_info']['symbol'])
+                    ->setTokenAddress($transaction['token_info']['address'])
+                    ->setDecimals($transaction['token_info']['decimals'])
+                    ->setBlockTimestamp($transaction['block_timestamp'])
+                    ->setFrom($transaction['from'])
+                    ->setTo($transaction['to'])
+                    ->setExType($transaction['type'])
+                    ->setValue($transaction['value'])
+                    ->setStatus(Transaction::STATUS_COMPLETED)
+                    ->setType(Transaction::TYPE_DEPOSIT);
+
                 $this->entityManager->persist($transactionEntity);
 
                 ### Update crypto wallet balance
@@ -102,12 +95,12 @@ class TRC20USDTListener
                 $depositAmount = ((int) $transaction['value'] / (10 ** $transaction['token_info']['decimals']));
                 if ($capitalBalance < $depositAmount) {
                     ### We dont have enough balance on capital and need to be deposited
-                    $queuedCapitalDeposit = new QueuedCapitalDeposit();
-                    $queuedCapitalDeposit->setCapitalAccount($capitalAccount);
-                    $queuedCapitalDeposit->setCreatedAt(new DateTimeImmutable());
-                    $queuedCapitalDeposit->setUpdatedAt(new DateTimeImmutable());
-                    $queuedCapitalDeposit->setAmount((string) abs($capitalBalance - $depositAmount));
-                    $queuedCapitalDeposit->setStatus(QueuedCapitalDeposit::STATUS_AWAITING);
+                    $queuedCapitalDeposit = (new QueuedCapitalDeposit())
+                        ->setCapitalAccount($capitalAccount)
+                        ->setCreatedAt(new DateTimeImmutable())
+                        ->setUpdatedAt(new DateTimeImmutable())
+                        ->setAmount((string) abs($capitalBalance - $depositAmount))
+                        ->setStatus(QueuedCapitalDeposit::STATUS_AWAITING);
 
                     $this->entityManager->persist($queuedCapitalDeposit);
 
@@ -117,7 +110,6 @@ class TRC20USDTListener
                     $capitalAccount->setAllocatedBalance($this->addUSDBalance($capitalAccount->getAllocatedBalance(), (int) $transaction['value'], $transaction['token_info']['decimals']));
 
                     ### Update user balance
-                    $user = $cryptoWalletRepository->getUser();
                     $newBalance = $this->addUSDBalance($user->getBalance(), (int) $transaction['value'], $transaction['token_info']['decimals']);
                     $user->setBalance($newBalance);
                     $this->entityManager->persist($user);
@@ -135,7 +127,6 @@ class TRC20USDTListener
 
                 $this->tradingBotService->sendMessage((int) $user->getTelegramChatId(), $message);
             } catch (UniqueConstraintViolationException $e) {
-                // Handle unique constraint violation
                 $this->entityManager->rollback();
         
                 // Log the error

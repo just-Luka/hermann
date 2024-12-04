@@ -25,8 +25,8 @@ class CommandQueueStorage
     #[ORM\Column]
     private ?int $id = null;
 
-    #[ORM\OneToOne(targetEntity: User::class)] // Create a OneToOne relationship with the User entity
-    #[ORM\JoinColumn(nullable: false)] // This ensures the user_id is not null
+    #[ORM\OneToOne(targetEntity: User::class)]
+    #[ORM\JoinColumn(nullable: false)]
     private ?User $user = null;
 
     #[ORM\Column(length: 255)]

@@ -13,30 +13,18 @@ use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-final class TradingBotCommand
+final readonly class TradingBotCommand
 {
-    private LoggerInterface $logger;
-    private UserRepository $userRepository;
-    private EntityManagerInterface $entityManager;
-    private TradingBotService $tradingBotService;
-    private CommandQueueStorageRepository $cmdQueueRepository;
     private ?int $chatId;
     private ?array $sender;
 
     public function __construct(
-        LoggerInterface $logger, 
-        UserRepository $userRepository,
-        CommandQueueStorageRepository $cmdQueueRepository,
-        EntityManagerInterface $entityManager,
-        TradingBotService $tradingBotService,
-    )
-    {
-        $this->logger = $logger;
-        $this->userRepository = $userRepository;
-        $this->cmdQueueRepository = $cmdQueueRepository;
-        $this->entityManager = $entityManager;
-        $this->tradingBotService = $tradingBotService;
-    }
+        private LoggerInterface $logger,
+        private UserRepository $userRepository,
+        private CommandQueueStorageRepository $cmdQueueRepository,
+        private EntityManagerInterface $entityManager,
+        private TradingBotService $tradingBotService,
+    ) {}
 
     public function setup(int $chatId, array $sender): void
     {
@@ -50,17 +38,17 @@ final class TradingBotCommand
         $user = $this->userRepository->findByTelegramId($sender['id']);
 
         if (! $user) {
-            $user = new User();
-            $user->setTelegramId((string) $sender['id']);
-            $user->setCreatedAt(new DateTimeImmutable());
+            $user = (new User())
+                ->setTelegramId($sender['id'])
+                ->setCreatedAt(new DateTimeImmutable());
         }
 
-        $user->setFirstName($sender['first_name'] ?? $sender['username'] ?? 'Guest');
-        $user->setLastName($sender['last_name'] ?? null);
-        $user->setUsername($sender['username'] ?? null);
-        $user->setTelegramChatId((string) $this->chatId);
-        $user->setPhotoUrl($sender['photo_url'] ?? null);
-        $user->setUpdatedAt(new DateTimeImmutable());
+        $user->setFirstName($sender['first_name'] ?? $sender['username'] ?? 'Guest')
+            ->setLastName($sender['last_name'] ?? null)
+            ->setUsername($sender['username'] ?? null)
+            ->setTelegramChatId((string) $this->chatId)
+            ->setPhotoUrl($sender['photo_url'] ?? null)
+            ->setUpdatedAt(new DateTimeImmutable());
         
         $this->entityManager->persist($user);
         $this->entityManager->flush();
@@ -113,14 +101,14 @@ Available Commands:
             'size' => '',
         ];
 
-        $commandQueueStorage = new CommandQueueStorage();
-        $commandQueueStorage->setUser($user);
-        $commandQueueStorage->setCommandName(__FUNCTION__);
-        $commandQueueStorage->setLastQuestion(CommandQueueStorage::QUESTION_SEARCH_ASSET);
-        $commandQueueStorage->setInstructions($instructions);
-        $commandQueueStorage->setCount(0);
-        $commandQueueStorage->setCreatedAt(new DateTimeImmutable());
-        $commandQueueStorage->setUpdatedAt(new DateTimeImmutable());
+        $commandQueueStorage = (new CommandQueueStorage())
+            ->setUser($user)
+            ->setCommandName(__FUNCTION__)
+            ->setLastQuestion(CommandQueueStorage::QUESTION_SEARCH_ASSET)
+            ->setInstructions($instructions)
+            ->setCount(0)
+            ->setCreatedAt(new DateTimeImmutable())
+            ->setUpdatedAt(new DateTimeImmutable());
 
         $this->entityManager->persist($commandQueueStorage);
         $this->entityManager->flush();
@@ -150,14 +138,14 @@ Type: <b>Bitcoin</b>, <b>ETH</b>, <b>Tesla</b>, <b>USD/EUR</b>, <b>Gold</b>
             'choosen_payment' => '',
         ];
 
-        $commandQueueStorage = new CommandQueueStorage();
-        $commandQueueStorage->setUser($user);
-        $commandQueueStorage->setCommandName(__FUNCTION__);
-        $commandQueueStorage->setLastQuestion(CommandQueueStorage::QUESTION_DEPOSIT);
-        $commandQueueStorage->setInstructions($instructions);
-        $commandQueueStorage->setCount(0);
-        $commandQueueStorage->setCreatedAt(new DateTimeImmutable());
-        $commandQueueStorage->setUpdatedAt(new DateTimeImmutable());
+        $commandQueueStorage = (new CommandQueueStorage())
+            ->setUser($user)
+            ->setCommandName(__FUNCTION__)
+            ->setLastQuestion(CommandQueueStorage::QUESTION_SEARCH_ASSET)
+            ->setInstructions($instructions)
+            ->setCount(0)
+            ->setCreatedAt(new DateTimeImmutable())
+            ->setUpdatedAt(new DateTimeImmutable());
 
         $this->entityManager->persist($commandQueueStorage);
         $this->entityManager->flush();

@@ -8,6 +8,7 @@ use App\Contract\Listenable;
 use App\Contract\Multilingual;
 use App\Trait\AppTrait;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
 
 class AlexaBotService implements Listenable, Multilingual
@@ -16,21 +17,21 @@ class AlexaBotService implements Listenable, Multilingual
 
     private const WEBHOOK_SLUG = '/webhook_alexa';
     private Client $client;
-    private string $token;
-    private LoggerInterface $logger;
 
-    public function __construct(string $token, LoggerInterface $logger)
+    public function __construct(
+        private readonly string $token,
+        private readonly LoggerInterface $logger
+    )
     {
         $this->client = new Client();
-        $this->token = $token;
-        $this->logger = $logger;
     }
-    
+
     /**
      * webhook
      * Setup Telegram webhook for Alexa
-     * 
+     *
      * @return array
+     * @throws GuzzleException
      */
     public function webhook(): array
     {
@@ -42,6 +43,7 @@ class AlexaBotService implements Listenable, Multilingual
             return json_decode($response->getBody()->getContents(), true);
         } catch (\Exception $e) {
             $this->logger->error('Failed to set webhook', ['exception' => $e]);
+            exit();
         }
     }
 

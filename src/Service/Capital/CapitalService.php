@@ -9,6 +9,7 @@ use App\Repository\CapitalAccountRepository;
 use App\Trait\AppTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use GuzzleHttp\Exception\RequestException;
 use Psr\Log\LoggerInterface;
 
@@ -20,35 +21,40 @@ class CapitalService
     private const DEMO_URL = 'https://demo-api-capital.backend-capital.com/api/v1';
 
     private Client $client;
-    private LoggerInterface $logger;
-    private EntityManagerInterface $entityManager;
-    private CapitalAccountRepository $capitalAccountRepository;
     private CapitalAccount $capitalAccountMain;
     private bool $initAttempt = false;
 
     public function __construct(
-        LoggerInterface $logger,
-        EntityManagerInterface $entityManager,
-        CapitalAccountRepository $capitalAccountRepository,
+        private readonly LoggerInterface $logger,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly CapitalAccountRepository $capitalAccountRepository,
     )
     {
         $this->client = new Client();
-        $this->logger = $logger;
-        $this->entityManager = $entityManager;
-        $this->capitalAccountRepository = $capitalAccountRepository;
         $this->capitalAccountMain = $this->capitalAccountRepository->findOneBy(['is_main' => true]);
     }
 
+    /**
+     * @return bool
+     */
     public function getInitAttempt(): bool
     {
         return $this->initAttempt;
     }
 
+    /**
+     * @param bool $initAttempt
+     * @return void
+     */
     public function setInitAttempt(bool $initAttempt): void
     {
         $this->initAttempt = $initAttempt;
     }
 
+    /**
+     * @return array|null
+     * @throws GuzzleException
+     */
     public function initSession(): ?array
     {
         $url = $this->url() . '/session';
@@ -92,22 +98,29 @@ class CapitalService
         }
     }
 
+    /**
+     * @return string
+     */
     public function url(): string
     {
         return $this->isProd() ? self::REAL_URL : self::DEMO_URL;
     }
 
+    /**
+     * @return array
+     */
     public function cHeader(): array
     {
-        // Define headers
-        $headers = [
+        return [
             'X-SECURITY-TOKEN' => $this->capitalAccountMain->getXSecurityToken(),
             'CST' => $this->capitalAccountMain->getCst(),
         ];
-
-        return $headers;
     }
 
+    /**
+     * @param CapitalAccount $capitalAccount
+     * @return array
+     */
     private function getCapitalAccountCredentials(CapitalAccount $capitalAccount): array
     {
         $apiIdentifier = $capitalAccount->getApiIdentifier();

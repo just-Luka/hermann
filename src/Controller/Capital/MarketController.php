@@ -14,13 +14,15 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class MarketController extends AbstractController
 {
-    private MarketCapitalService $marketCapital;
+    public function __construct(
+        private readonly MarketCapitalService $marketCapital
+    ) {}
 
-    public function __construct(MarketCapitalService $marketCapital)
-    {
-        $this->marketCapital = $marketCapital;
-    }
-
+    /**
+     * @param Request $request
+     * @param string $epic
+     * @return JsonResponse
+     */
     #[Route('/market/{epic}', methods: ['GET'])]
     public function read(Request $request, string $epic): JsonResponse
     {
@@ -28,7 +30,11 @@ final class MarketController extends AbstractController
 
         return $this->json($res);
     }
-    
+
+    /**
+     * @param Request $request
+     * @return JsonResponse
+     */
     #[Route('/market-search', methods: ['GET'])]
     public function searchPairs(Request $request): JsonResponse
     {

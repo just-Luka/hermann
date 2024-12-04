@@ -11,17 +11,20 @@ use App\Service\Validation\SimpleValidationService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
+use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 final class SignalsController extends AbstractController
 {
-    private SignalsTelegramService $telegramService;
+    public function __construct(
+        private readonly SignalsTelegramService $telegramService
+    ) {}
 
-    public function __construct(SignalsTelegramService $telegramService)
-    {
-        $this->telegramService = $telegramService;
-    }
-
+    /**
+     * @param Request $request
+     * @param SimpleValidationService $validation
+     * @return JsonResponse
+     */
     #[Route('send-signal', methods: ['POST'])]
     public function sendTradingSignal(Request $request, SimpleValidationService $validation): JsonResponse
     {
@@ -31,7 +34,7 @@ final class SignalsController extends AbstractController
             return $this->json([
                 'status' => 'error',
                 'errors' => $validation->getMessages()
-            ], JsonResponse::HTTP_BAD_REQUEST);
+            ], Response::HTTP_BAD_REQUEST);
         }
     
         $message = sprintf(

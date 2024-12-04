@@ -22,9 +22,8 @@ final class TronAccountService implements Publishable
     ) {}
 
     /**
-     * createWallet
-     *
-     * @return array
+     * @param User $user
+     * @return void
      */
     public function requestWalletCreation(User $user): void
     {

@@ -16,19 +16,26 @@ use Symfony\Component\Console\Output\OutputInterface;
 )]
 final class SetTelegramBotWebhooksCommand extends Command
 {
-    private iterable $botServices;
-
-    public function __construct(iterable $botServices)
+    public function __construct(
+        private readonly iterable $botServices
+    )
     {
         parent::__construct();
-        $this->botServices = $botServices;
     }
 
+    /**
+     * @return void
+     */
     protected function configure(): void
     {
         $this->setDescription('Sets the webhook URL for the Telegram bot.');
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         foreach ($this->botServices as $botService) {

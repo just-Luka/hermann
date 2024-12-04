@@ -9,7 +9,7 @@ trait MessageFormatterTrait
     /**
      * Formats the value with a $ sign for negative/positive values.
      *
-     * @param float $fee
+     * @param float $value
      * @return string
      */
     public function addDollarSign(float $value): string
@@ -43,5 +43,20 @@ trait MessageFormatterTrait
     public function formatOvernightPercent(float $overnightFeePercent): string
     {
         return ($overnightFeePercent == 0) ? "<b>No</b>" : number_format($overnightFeePercent, 3) . '%';
+    }
+
+    /**
+     * @param string $input
+     * @return float|string
+     */
+    private function sanitizeFloatInput(string $input): float|string
+    {
+        $input = trim($input);
+        $normalizedInput = str_replace(',', '.', $input);
+        if (is_numeric($normalizedInput)) {
+            return floatval($normalizedInput);
+        }
+
+        return $input;
     }
 }

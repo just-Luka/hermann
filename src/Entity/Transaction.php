@@ -9,7 +9,6 @@ use Doctrine\ORM\Mapping as ORM;
 #[ORM\Entity(repositoryClass: TransactionRepository::class)]
 class Transaction
 {
-    // Define possible statuses and types as constants
     public const STATUS_COMPLETED = 'COMPLETED';
     public const STATUS_PROGRESS = 'PROGRESS';
     public const STATUS_RETURNED = 'RETURNED';

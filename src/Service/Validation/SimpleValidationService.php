@@ -10,15 +10,12 @@ use Symfony\Component\HttpFoundation\Request;
 
 class SimpleValidationService
 {
-    private FormFactoryInterface $formFactory;
-    
     private array $messages = [];
     private array $data = [];
 
-    public function __construct(FormFactoryInterface $formFactory)
-    {
-        $this->formFactory = $formFactory;
-    }
+    public function __construct(
+        private readonly FormFactoryInterface $formFactory
+    ) {}
 
     public function fails(Request $request, string $type = FormType::class): bool
     {

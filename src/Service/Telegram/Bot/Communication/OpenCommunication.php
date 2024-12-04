@@ -18,13 +18,6 @@ final class OpenCommunication
 {
     use OpenMessageTrait;
 
-    private LoggerInterface $logger;
-    private TradingBotService $tradingBotService;
-    private MarketCapitalService $marketCapital;
-    private AccountCapitalService $accountCapitalService;
-    private PositionsCapitalService $positionsCapitalService;
-    private EntityManagerInterface $entityManager;
-
     private int $chatId;
     private CommandQueueStorage $commandQueueStorage;
     private User $user;
@@ -33,21 +26,13 @@ final class OpenCommunication
         'search' => 5,
     ];
     public function __construct(
-        LoggerInterface $logger, 
-        TradingBotService $tradingBotService,
-        MarketCapitalService $marketCapital,
-        AccountCapitalService $accountCapitalService,
-        PositionsCapitalService $positionsCapitalService,
-        EntityManagerInterface $entityManager,
-    )
-    {
-        $this->logger = $logger;
-        $this->tradingBotService = $tradingBotService;
-        $this->marketCapital = $marketCapital;
-        $this->accountCapitalService = $accountCapitalService;
-        $this->positionsCapitalService = $positionsCapitalService;
-        $this->entityManager = $entityManager;
-    }
+        private readonly LoggerInterface $logger,
+        private readonly TradingBotService $tradingBotService,
+        private readonly MarketCapitalService $marketCapital,
+        private readonly AccountCapitalService $accountCapitalService,
+        private readonly PositionsCapitalService $positionsCapitalService,
+        private readonly EntityManagerInterface $entityManager,
+    ) {}
 
     public function setup(int $chatId, CommandQueueStorage $commandQueueStorage, User $user): void
     {
@@ -78,7 +63,7 @@ final class OpenCommunication
                 continue;
             }
 
-            array_push($instructions['assets'], $pair);
+            $instructions['assets'][] = $pair;
         }
 
         $message = $this->searchMessage($instructions);
@@ -96,12 +81,12 @@ final class OpenCommunication
         $this->entityManager->flush();
     }
 
-    public function createOrder(int $choosenNumber): void
+    public function createOrder(int $chosenNumber): void
     {
         $instructions = $this->commandQueueStorage->getInstructions();
         
-        // Asset which was choosen by user
-        $instructions['asset'] = $instructions['assets'][$choosenNumber - 1]; 
+        // Asset which was $chosen by user
+        $instructions['asset'] = $instructions['assets'][$chosenNumber - 1];
 
         $pair = $this->marketCapital->singleMarketInfo($instructions['asset']['epic']);
         if (is_null($pair)) {
@@ -170,15 +155,15 @@ Max available amount is <b>$maxSizeAvailableForUser</b>
 
         $instructions['size'] = $amount;
         
-        $this->commandQueueStorage->setLastQuestion(CommandQueueStorage::QUESTION_CONFIRMING_AMOUNT);
-        $this->commandQueueStorage->setInstructions($instructions);
-        $this->commandQueueStorage->setCount(0);
+        $this->commandQueueStorage->setLastQuestion(CommandQueueStorage::QUESTION_CONFIRMING_AMOUNT)
+            ->setInstructions($instructions)
+            ->setCount(0);
 
         $this->entityManager->persist($this->commandQueueStorage);
         $this->entityManager->flush();
     }
 
-    public function amountConfirmFailed($text)
+    public function amountConfirmFailed(string $text)
     {
         $count = $this->commandQueueStorage->getCount();
 
@@ -272,10 +257,8 @@ Max available amount is <b>$maxSizeAvailableForUser</b>
     {
         $storage = $this->commandQueueStorage;
 
-        if ($storage) {
-            $this->entityManager->remove($storage);
-            $this->entityManager->flush();
-        }
+        $this->entityManager->remove($storage);
+        $this->entityManager->flush();
 
         $message = "
 Exited. ✅

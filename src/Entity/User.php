@@ -209,13 +209,11 @@ class User implements UserInterface
         return $this->username;   
     }
 
-    // Getter for capital_account
     public function getCapitalAccount(): ?CapitalAccount
     {
         return $this->capital_account;
     }
 
-    // Setter for capital_account
     public function setCapitalAccount(?CapitalAccount $capital_account): static
     {
         $this->capital_account = $capital_account;

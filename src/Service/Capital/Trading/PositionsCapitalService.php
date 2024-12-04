@@ -12,16 +12,15 @@ use Psr\Log\LoggerInterface;
 
 final class PositionsCapitalService
 {
-    private CapitalService $capitalService;
-    private LoggerInterface $logger;
     private Client $client;
     private string $url;
     private string $confirmURL;
 
-    public function __construct(CapitalService $capitalService, LoggerInterface $logger)
+    public function __construct(
+        private readonly CapitalService $capitalService,
+        private readonly LoggerInterface $logger
+    )
     {
-        $this->capitalService = $capitalService;
-        $this->logger = $logger;
         $this->client = new Client();
         $this->url = $capitalService->url() . '/positions';
         $this->confirmURL = $capitalService->url() . '/confirms';
@@ -60,7 +59,7 @@ final class PositionsCapitalService
         }
     }
 
-    public function confirm($dealId): ?array
+    public function confirm(string $dealId): ?array
     {
         try {
             $response = $this->client->get($this->confirmURL . "/$dealId", [

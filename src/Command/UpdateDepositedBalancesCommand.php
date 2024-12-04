@@ -15,31 +15,33 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 #[AsCommand(
     name: 'app:update-deposited-balances',
-    description: 'Add a short description for your command',
+    description: 'Update deposited balances',
 )]
 final class UpdateDepositedBalancesCommand extends Command
 {
-    private QueuedDepositRepository $queuedDepositRepository;
-    private EntityManagerInterface $entityManager;
-    private EventDispatcherInterface $eventDispatcher;
-
     public function __construct(
-        QueuedDepositRepository $queuedDepositRepository, 
-        EntityManagerInterface $entityManager,
-        EventDispatcherInterface $eventDispatcher,
+        private readonly QueuedDepositRepository $queuedDepositRepository,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly EventDispatcherInterface $eventDispatcher,
     )
     {
         parent::__construct();
-        $this->queuedDepositRepository = $queuedDepositRepository;
-        $this->entityManager = $entityManager;
-        $this->eventDispatcher = $eventDispatcher;
     }
 
+    /**
+     * @return void
+     */
     protected function configure(): void
     {
-        $this->setDescription('---');
+        $this->setDescription('Deposited balances updated to queue!');
     }
 
+    /**
+     * @param InputInterface $input
+     * @param OutputInterface $output
+     * @return int
+     * @throws \DateMalformedStringException
+     */
     protected function execute(InputInterface $input, OutputInterface $output): int
     {
         $now = new \DateTime();

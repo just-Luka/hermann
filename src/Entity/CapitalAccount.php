@@ -18,7 +18,7 @@ class CapitalAccount
     #[ORM\Column(type: 'boolean', options: ['default' => false])]
     private bool $is_main = false;
 
-    #[ORM\Column(type: 'string', unique: false)] // allows duplicates
+    #[ORM\Column(type: 'string', unique: false)]
     private ?string $email = null;
 
     #[ORM\Column(type: 'string', length: 255)]
@@ -50,8 +50,6 @@ class CapitalAccount
 
     #[ORM\Column(type: Types::DATETIME_MUTABLE)]
     private ?\DateTimeInterface $updated_at = null;
-
-    // Getters and setters for each field
 
     public function getId(): ?int
     {

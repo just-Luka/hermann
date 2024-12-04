@@ -16,7 +16,11 @@ final readonly class RabbitMQClientService
         public string $user,
         public string $password
     ) {
-        $this->connection = new AMQPStreamConnection($host, $port, $user, $password);
+        try {
+            $this->connection = new AMQPStreamConnection($host, $port, $user, $password);
+        } catch (\Exception $e) {
+            throw new \RuntimeException('Failed to establish RabbitMQ connection: ' . $e->getMessage(), 0, $e);
+        }
     }
 
     public function getConnection(): AMQPStreamConnection

@@ -7,6 +7,7 @@ namespace App\Service\Telegram\Bot;
 use App\Contract\Listenable;
 use App\Trait\AppTrait;
 use GuzzleHttp\Client;
+use GuzzleHttp\Exception\GuzzleException;
 use Psr\Log\LoggerInterface;
 
 class TradingBotService implements Listenable
@@ -15,21 +16,21 @@ class TradingBotService implements Listenable
 
     private const WEBHOOK_SLUG = '/webhook_trading';
     private Client $client;
-    private string $token;
-    private LoggerInterface $logger;
 
-    public function __construct(string $token, LoggerInterface $logger)
+    public function __construct(
+        private readonly string $token,
+        private readonly LoggerInterface $logger
+    )
     {
         $this->client = new Client();
-        $this->token = $token;
-        $this->logger = $logger;
     }
 
     /**
      * webhook
      * Setup Telegram webhook for Trading BOT
-     * 
+     *
      * @return array
+     * @throws GuzzleException
      */
     public function webhook(): array
     {
@@ -41,14 +42,9 @@ class TradingBotService implements Listenable
             return json_decode($response->getBody()->getContents(), true);
         } catch (\Exception $e) {
             $this->logger->error('Failed to set webhook', ['exception' => $e]);
+            exit();
         }
     }
-
-    // Not working!
-    // public function translationPath(): string
-    // {
-    //     return __DIR__ . '/../../../../translations/trading/';
-    // }
     
     /**
      * isValidTelegramAuth
@@ -74,6 +70,12 @@ class TradingBotService implements Listenable
         return hash_equals($authData['hash'], $hash);
     }
 
+    /**
+     * @param int $chatId
+     * @param string $message
+     * @return void
+     * @throws GuzzleException
+     */
     public function sendMessage(int $chatId, string $message): void
     {
         $url = "https://api.telegram.org/bot{$this->token}/sendMessage";

@@ -21,12 +21,6 @@ final class DepositCommunication
 {
     use DepositMessageTrait;
 
-    private LoggerInterface $logger;
-    private TradingBotService $tradingBotService;
-    private EntityManagerInterface $entityManager;
-    private TronAccountService $tronAccountService;
-    private CryptoWalletRepository $cryptoWalletRepository;
-
     private int $chatId;
     private CommandQueueStorage $commandQueueStorage;
     private User $user;
@@ -45,19 +39,12 @@ final class DepositCommunication
     ];
 
     public function __construct(
-        LoggerInterface $logger, 
-        TradingBotService $tradingBotService,
-        EntityManagerInterface $entityManager,
-        TronAccountService $tronAccountService,
-        CryptoWalletRepository $cryptoWalletRepository,
-    )
-    {
-        $this->logger = $logger;
-        $this->tradingBotService = $tradingBotService;
-        $this->entityManager = $entityManager;
-        $this->tronAccountService = $tronAccountService;
-        $this->cryptoWalletRepository = $cryptoWalletRepository;
-    }
+        private readonly LoggerInterface $logger,
+        private readonly TradingBotService $tradingBotService,
+        private readonly EntityManagerInterface $entityManager,
+        private readonly TronAccountService $tronAccountService,
+        private readonly CryptoWalletRepository $cryptoWalletRepository,
+    ) {}
 
     public function setup(int $chatId, CommandQueueStorage $commandQueueStorage, User $user): void
     {

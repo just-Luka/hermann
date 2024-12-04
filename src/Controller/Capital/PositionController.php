@@ -12,27 +12,19 @@ use Symfony\Component\Routing\Annotation\Route;
 
 final class PositionController extends AbstractController
 {
-    private PositionsCapitalService $positionsCapital;
-
-    public function __construct(PositionsCapitalService $positionsCapital)
-    {
-        $this->positionsCapital = $positionsCapital;
-    }
+    public function __construct(
+        private readonly PositionsCapitalService $positionsCapital
+    ) {}
 
     #[Route('/position/create', methods: ['POST'])]
-    public function create(Request $request): JsonResponse
+    public function create(Request $request): void
     {
-        $input = $request->request->all();
-
-        $res = $this->positionsCapital->create();
-        return $this->json($res);
+       # maintenance
     }
 
     #[Route('/position/show/{id}', methods: ['GET'])]
-    public function show($id): JsonResponse
+    public function show($id): void
     {
-        $res = $this->positionsCapital->singlePosition($id);
-
-        return $this->json($res);
+        # maintenance
     }
 }

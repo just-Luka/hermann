@@ -9,18 +9,12 @@ use Symfony\Contracts\EventDispatcher\Event;
 
 final class DepositEvent extends Event
 {
-    private QueuedDeposit $queuedDeposit;
-    private string $addressBase58;
-    private ?string $network;
-    private ?string $coinName;
-
-    public function __construct(QueuedDeposit $queuedDeposit, string $addressBase58, ?string $network = null, ?string $coinName = null)
-    {
-        $this->queuedDeposit = $queuedDeposit;
-        $this->addressBase58 = $addressBase58;
-        $this->network = $network;
-        $this->coinName = $coinName;
-    }
+    public function __construct(
+        private readonly QueuedDeposit $queuedDeposit,
+        private readonly string $addressBase58,
+        private readonly ?string $network = null,
+        private readonly ?string $coinName = null,
+    ) {}
 
     public function getQueuedDeposit(): QueuedDeposit
     {
