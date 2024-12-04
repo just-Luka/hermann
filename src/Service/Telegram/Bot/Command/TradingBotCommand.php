@@ -141,7 +141,7 @@ Type: <b>Bitcoin</b>, <b>ETH</b>, <b>Tesla</b>, <b>USD/EUR</b>, <b>Gold</b>
         $commandQueueStorage = (new CommandQueueStorage())
             ->setUser($user)
             ->setCommandName(__FUNCTION__)
-            ->setLastQuestion(CommandQueueStorage::QUESTION_SEARCH_ASSET)
+            ->setLastQuestion(CommandQueueStorage::QUESTION_DEPOSIT)
             ->setInstructions($instructions)
             ->setCount(0)
             ->setCreatedAt(new DateTimeImmutable())

@@ -6,17 +6,17 @@ namespace App\Trait;
 
 trait AppTrait
 {
-    public function isProd(): bool
+    protected function isProd(): bool
     {
         return $_ENV['APP_ENV'] === 'prod';
     }
 
-    public function url(): string
+    protected function url(): string
     {
         return $this->isProd() ? $_ENV['PROD_URL'] : $_ENV['TEST_URL'];
     }
 
-    public function webhookURL(): string
+    protected function webhookURL(): string
     {
         return $this->isProd() ? $this->url() : $_ENV['NGROK_URL'];
     }

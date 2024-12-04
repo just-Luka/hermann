@@ -4,11 +4,9 @@ declare(strict_types=1);
 
 namespace App\Trait\Message;
 
-use App\Entity\CryptoWallet;
-
 trait DepositMessageTrait
 {
-    public function createCryptoPaymentMessage(array $instructions, CryptoWallet $userWallet): string
+    protected function createCryptoPaymentMessage(string $amount, string $addressBase58): string
     {
         $message = "
 <b>To process your Tether (USDT) TRC-20 payment successfully:</b>
@@ -18,8 +16,8 @@ trait DepositMessageTrait
 - <b>Generate a new payment for</b> each deposit.
 
 ==========================
-Amount: <b>\${$instructions['amount']}</b>
-Address (Tron): <b>{$userWallet->getAddressBase58()}</b>
+Amount: <b>\${$amount}</b>
+Address (Tron): <b>{$addressBase58}</b>
 ==========================
 
 Processing takes up to 10-15 minutes.

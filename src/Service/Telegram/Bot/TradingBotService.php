@@ -74,7 +74,6 @@ class TradingBotService implements Listenable
      * @param int $chatId
      * @param string $message
      * @return void
-     * @throws GuzzleException
      */
     public function sendMessage(int $chatId, string $message): void
     {
@@ -85,6 +84,10 @@ class TradingBotService implements Listenable
             'parse_mode' => 'HTML',
         ];
 
-        $this->client->post($url, ['form_params' => $payload]);
+        try {
+            $this->client->post($url, ['form_params' => $payload]);
+        } catch (GuzzleException $e) {
+            $this->logger->critical('Failed to send message', ['exception' => $e]);
+        }
     }
 }

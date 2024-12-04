@@ -54,7 +54,7 @@ final class DepositCommunication
     }
 
     public function amount(string $number): void
-    {        
+    {
         if (! is_numeric($number) || (int) $number > 3) {
             $message = "
 Wrong deposit method. 
@@ -117,25 +117,24 @@ Max Available Deposit: <b>$20,000</b>
         }
 
         $instructions = $this->commandQueueStorage->getInstructions();
-        $instructions['amount'] = $this->fixedDeposit[$number - 1] ?? $number;
+        $instructions['amount'] = (string) $this->fixedDeposit[$number - 1] ?? $number;
 
         $userWallet = $this->cryptoWalletRepository->findLastCreatedWalletByUser($this->user);
 
         if (is_null($userWallet)) {
             ### If user doesn't have wallet
-            $this->tronAccountService->requestWalletCreation($this->user);
-            # TODO send notification to telegram and perform queue actions
+            $this->tronAccountService->requestWalletCreation($this->user, $instructions['amount']);
             return;
         }
 
-        $this->tradingBotService->sendMessage($this->chatId, $this->createCryptoPaymentMessage($instructions, $userWallet));
+        $this->tradingBotService->sendMessage($this->chatId, $this->createCryptoPaymentMessage($instructions['amount'], $userWallet->getAddressBase58()));
         $this->tradingBotService->sendMessage($this->chatId, $userWallet->getAddressBase58());
 
-        $queuedDeposit = new QueuedDeposit();
-        $queuedDeposit->setCryptoWallet($userWallet);
-        $queuedDeposit->setCreatedAt(new DateTimeImmutable());
-        $queuedDeposit->setUpdatedAt(new DateTimeImmutable());
-        $queuedDeposit->setAmount((string) $instructions['amount']);
+        $queuedDeposit = (new QueuedDeposit())
+            ->setCryptoWallet($userWallet)
+            ->setCreatedAt(new DateTimeImmutable())
+            ->setUpdatedAt(new DateTimeImmutable())
+            ->setAmount($instructions['amount']);
 
         $this->entityManager->persist($queuedDeposit);
         $this->entityManager->flush();

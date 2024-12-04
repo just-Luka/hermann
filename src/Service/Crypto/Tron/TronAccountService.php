@@ -21,14 +21,21 @@ final class TronAccountService implements Publishable
         private readonly RabbitMQClientService $mqClient,
     ) {}
 
+    public function __destruct()
+    {
+
+    }
+
     /**
      * @param User $user
+     * @param string $amount
      * @return void
      */
-    public function requestWalletCreation(User $user): void
+    public function requestWalletCreation(User $user, string $amount): void
     {
         $this->publish([
                 'type' => 'createWallet',
+                'amount' => $amount,
                 'user_id' => $user->getId(),
                 'timestamp' => time(),
             ],
