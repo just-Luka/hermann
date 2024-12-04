@@ -21,11 +21,6 @@ final class TronAccountService implements Publishable
         private readonly RabbitMQClientService $mqClient,
     ) {}
 
-    public function __destruct()
-    {
-
-    }
-
     /**
      * @param User $user
      * @param string $amount
