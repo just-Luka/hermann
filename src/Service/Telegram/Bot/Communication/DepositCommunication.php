@@ -5,25 +5,18 @@ declare(strict_types=1);
 namespace App\Service\Telegram\Bot\Communication;
 
 use App\Entity\CommandQueueStorage;
-use App\Entity\CryptoWallet;
 use App\Entity\QueuedDeposit;
-use App\Entity\User;
 use App\Repository\CryptoWalletRepository;
 use App\Service\Crypto\Tron\TronAccountService;
 use App\Service\Telegram\Bot\TradingBotService;
 use App\Trait\Message\DepositMessageTrait;
-use App\Trait\Message\OpenMessageTrait;
 use DateTimeImmutable;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-final class DepositCommunication
+final class DepositCommunication extends BaseCommunication
 {
     use DepositMessageTrait;
-
-    private int $chatId;
-    private CommandQueueStorage $commandQueueStorage;
-    private User $user;
 
     private array $limit = [
         'choosing_deposit' => 3,
@@ -45,13 +38,6 @@ final class DepositCommunication
         private readonly TronAccountService $tronAccountService,
         private readonly CryptoWalletRepository $cryptoWalletRepository,
     ) {}
-
-    public function setup(int $chatId, CommandQueueStorage $commandQueueStorage, User $user): void
-    {
-        $this->chatId = $chatId;
-        $this->commandQueueStorage = $commandQueueStorage;
-        $this->user = $user;
-    }
 
     public function amount(string $number): void
     {

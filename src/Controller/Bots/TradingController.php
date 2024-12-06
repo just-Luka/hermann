@@ -8,11 +8,17 @@ use App\Entity\CommandQueueStorage;
 use App\Event\HermannPaymentsEvent;
 use App\Repository\CommandQueueStorageRepository;
 use App\Repository\UserRepository;
-use App\Service\Crypto\Tron\TronAccountService;
 use App\Service\Telegram\Bot\Communication\OpenCommunication;
 use App\Service\Telegram\Bot\Command\TradingBotCommand;
 use App\Service\Telegram\Bot\Communication\DepositCommunication;
 use App\Service\Translation\TranslationService;
+use App\State\TradingCommunication\Context\CommandContext;
+use App\State\TradingCommunication\Deposit\ChoosingDepositState;
+use App\State\TradingCommunication\Deposit\TypingUSDAmountState;
+use App\State\TradingCommunication\Open\ChoosingAssetState;
+use App\State\TradingCommunication\Open\ConfirmAmountState;
+use App\State\TradingCommunication\Open\SearchAssetState;
+use App\State\TradingCommunication\Open\TypingAmountState;
 use App\Trait\Message\Formatter\MessageFormatterTrait;
 use Exception;
 use Psr\Log\LoggerInterface;
@@ -81,48 +87,37 @@ final class TradingController extends AbstractController
                 $user = $userRepository->findByTelegramId($telegramId);
                 $storage = $commandQueueStorage->findOneBy(['user' => $user]);
     
-                // Refactoring: new class for executing sub commands
-                
                 if ($storage) {
-                    $openCommunication->setup($chatId, $storage, $user);
-                    if ($storage->getCommandName() === 'open') {
-                        if ($storage->getLastQuestion() === CommandQueueStorage::QUESTION_SEARCH_ASSET) {
-                            $openCommunication->searchAsset($text);
-                        } elseif ($storage->getLastQuestion() === CommandQueueStorage::QUESTION_CHOOSING_ASSET) {
-                            if (!is_numeric($text) || (int)$text < 1 || (int)$text > sizeof($storage->getInstructions()['assets'])) {
-                                $openCommunication->searchAsset($text);
-                            } else {
-                                $openCommunication->createOrder((int) $text);
-                            }
-                        } elseif ($storage->getLastQuestion() === CommandQueueStorage::QUESTION_TYPING_AMOUNT) {
-                            $amount = $this->sanitizeFloatInput($text);
-                            if (is_float($amount)) {
-                                $openCommunication->amountConfirm($amount);
-                            } else {
-                                $openCommunication->amountConfirmFailed($text);
-                            }
-                        } elseif ($storage->getLastQuestion() === CommandQueueStorage::QUESTION_CONFIRMING_AMOUNT) {
-                            $amount = $this->sanitizeFloatInput($text);
-                            if (strtoupper($text) === 'BUY') {
-                                $openCommunication->buy();
-                                $tradingBotCommand->exit(true);
-                            } elseif (strtoupper($text) === 'SELL') {
-                                $openCommunication->sell();
-                                $tradingBotCommand->exit(true);
-                            } elseif (is_float($amount)) {
-                                $openCommunication->amountConfirm($amount);
-                            } else {
-                                // %count + + +
-                            }
-                        }
-                    } elseif ($storage->getCommandName() === 'deposit') {
-                        $depositCommunication->setup($chatId, $storage, $user);
-                        if ($storage->getLastQuestion() === CommandQueueStorage::QUESTION_DEPOSIT) {
-                            $depositCommunication->amount($text);
-                        } elseif ($storage->getLastQuestion() === CommandQueueStorage::QUESTION_TYPING_USD_AMOUNT) {
-                            $depositCommunication->createCryptoPayment($text);
-                        }
+                    $context = new CommandContext();
+                    $communication = match ($storage->getCommandName()) {
+                        'open' => $openCommunication->setup($user, $storage),
+                        'deposit' => $depositCommunication->setup($user, $storage),
+                        'default' => null,
+                    };
+
+                    switch ($storage->getLastQuestion()) {
+                        ### /OPEN
+                        case CommandQueueStorage::QUESTION_SEARCH_ASSET:
+                            $context->setState(new SearchAssetState($communication));
+                            break;
+                        case CommandQueueStorage::QUESTION_CHOOSING_ASSET:
+                            $context->setState(new ChoosingAssetState($communication));
+                            break;
+                        case CommandQueueStorage::QUESTION_TYPING_AMOUNT:
+                            $context->setState(new TypingAmountState($communication));
+                            break;
+                        case CommandQueueStorage::QUESTION_CONFIRMING_AMOUNT:
+                            $context->setState(new ConfirmAmountState($communication, $tradingBotCommand));
+                            break;
+                        ### /DEPOSIT
+                        case CommandQueueStorage::QUESTION_DEPOSIT:
+                            $context->setState(new ChoosingDepositState($communication));
+                            break;
+                        case CommandQueueStorage::QUESTION_TYPING_USD_AMOUNT:
+                            $context->setState(new TypingUSDAmountState($communication));
+                            break;
                     }
+                    $context->handle($text);
                 }
             }
         } catch (Exception $e) {

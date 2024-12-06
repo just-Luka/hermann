@@ -5,7 +5,6 @@ declare(strict_types=1);
 namespace App\Service\Telegram\Bot\Communication;
 
 use App\Entity\CommandQueueStorage;
-use App\Entity\User;
 use App\Service\Capital\Account\AccountCapitalService;
 use App\Service\Capital\Market\MarketCapitalService;
 use App\Service\Capital\Trading\PositionsCapitalService;
@@ -14,17 +13,14 @@ use App\Trait\Message\OpenMessageTrait;
 use Doctrine\ORM\EntityManagerInterface;
 use Psr\Log\LoggerInterface;
 
-final class OpenCommunication
+final class OpenCommunication extends BaseCommunication
 {
     use OpenMessageTrait;
-
-    private int $chatId;
-    private CommandQueueStorage $commandQueueStorage;
-    private User $user;
 
     private array $limit = [
         'search' => 5,
     ];
+
     public function __construct(
         private readonly LoggerInterface $logger,
         private readonly TradingBotService $tradingBotService,
@@ -34,11 +30,9 @@ final class OpenCommunication
         private readonly EntityManagerInterface $entityManager,
     ) {}
 
-    public function setup(int $chatId, CommandQueueStorage $commandQueueStorage, User $user): void
+    public function getCommandQueueStorage(): CommandQueueStorage
     {
-        $this->chatId = $chatId;
-        $this->commandQueueStorage = $commandQueueStorage;
-        $this->user = $user;
+        return $this->commandQueueStorage;
     }
 
     public function searchAsset(string $text): void
