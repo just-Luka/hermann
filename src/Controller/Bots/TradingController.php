@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Controller\Bots;
 
+use App\DTO\Bots\TradingBotDTO;
 use App\Entity\CommandQueueStorage;
 use App\Event\HermannPaymentsEvent;
 use App\Repository\CommandQueueStorageRepository;
@@ -43,57 +44,41 @@ final class TradingController extends AbstractController
         UserRepository $userRepository, 
         OpenCommunication $openCommunication,
         DepositCommunication $depositCommunication,
+        CommandContext $context,
     ): JsonResponse
     {
         try {
             $update = json_decode($request->getContent(), true);
 
             if (isset($update['message'])) {
-                $chatId = $update['message']['chat']['id'];
-                $command = ltrim($update['message']['text'], '/');
-    
-                $sender = $update['message']['from'];
-                $languageCode = $sender['language_code'];
-                $telegramId = $sender['id'];
-    
-                if ($sender['is_bot']) {
+                $webhookDTO = new TradingBotDTO($update);
+
+                if ($webhookDTO->getSender()['is_bot']) {
                     return $this->json('Bot communication not supported yet!');
                 }
-    
-                $tradingBotCommand->setup($chatId, $sender);
-    
-                if ($command === 'start') {
-                    $tradingBotCommand->exit(true);
-                    $tradingBotCommand->start();
+
+                $tradingBotCommand->setup($webhookDTO->getChatId(), $webhookDTO->getSender());
+
+                $commands = ['start', 'open', 'deposit', 'exit'];
+                if (in_array($webhookDTO->getCommand(), $commands)) {
+                    $tradingBotCommand->{$webhookDTO->getCommand()}();
                     return $this->json('OK');
-                } elseif($command === 'open') {
-                    $tradingBotCommand->exit(true);
-                    $tradingBotCommand->open();
-                    return $this->json('OK');
-                } elseif($command === 'deposit') {
-                    $tradingBotCommand->exit(true);
-                    $tradingBotCommand->deposit();
-                    return $this->json('OK');
-                } elseif($command === 'exit') {
-                    $tradingBotCommand->exit();
-                    return $this->json('OK');
-                } 
+                }
     
                 // If there is no match for any command, then :
-                $text = $command;
+                $text = $webhookDTO->getCommand();
                 
-                // Check if user in process of communication.
+                // Check if user is in process of communication.
                 // That means he already typed some /command, our bot waits for something!
-                $user = $userRepository->findByTelegramId($telegramId);
+                $user = $userRepository->findByTelegramId($webhookDTO->getTelegramId());
                 $storage = $commandQueueStorage->findOneBy(['user' => $user]);
     
                 if ($storage) {
-                    $context = new CommandContext();
                     $communication = match ($storage->getCommandName()) {
-                        'open' => $openCommunication->setup($user, $storage),
-                        'deposit' => $depositCommunication->setup($user, $storage),
-                        'default' => null,
+                        'open' => $openCommunication,
+                        'deposit' => $depositCommunication,
                     };
+                    $communication->setup($user, $storage);
 
                     switch ($storage->getLastQuestion()) {
                         ### /OPEN
@@ -123,7 +108,6 @@ final class TradingController extends AbstractController
         } catch (Exception $e) {
             $this->logger->critical('Important Error!');
         }
-        
 
         // MUST ALWAYS BE 200, otherwise webhooks goes in queue ...
         return $this->json([], 200);

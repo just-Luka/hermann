@@ -34,12 +34,14 @@ final readonly class TradingBotCommand
 
     public function start(): void
     {
+        $this->exit(true);
+
         $sender = $this->sender;
         $user = $this->userRepository->findByTelegramId($sender['id']);
 
         if (! $user) {
             $user = (new User())
-                ->setTelegramId($sender['id'])
+                ->setTelegramId((string) $sender['id'])
                 ->setCreatedAt(new DateTimeImmutable());
         }
 
@@ -91,6 +93,8 @@ Available Commands:
     // User Blocking
     public function open(): void
     {
+        $this->exit(true);
+
         $sender = $this->sender;
         $user = $this->userRepository->findByTelegramId($sender['id']);
 
@@ -125,6 +129,8 @@ Type: <b>Bitcoin</b>, <b>ETH</b>, <b>Tesla</b>, <b>USD/EUR</b>, <b>Gold</b>
 
     public function deposit(): void
     {
+        $this->exit(true);
+
         $sender = $this->sender;
         $user = $this->userRepository->findByTelegramId($sender['id']);
 
