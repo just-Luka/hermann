@@ -6,6 +6,7 @@ namespace App\Controller\Bots;
 
 use App\DTO\Bots\TradingBotDTO;
 use App\Entity\CommandQueueStorage;
+use App\Enum\TradingBot\TCommand;
 use App\Event\HermannPaymentsEvent;
 use App\Repository\CommandQueueStorageRepository;
 use App\Repository\UserRepository;
@@ -51,7 +52,7 @@ final class TradingController extends AbstractController
             $update = json_decode($request->getContent(), true);
 
             if (isset($update['message'])) {
-                $webhookDTO = new TradingBotDTO($update);
+                $webhookDTO = new TradingBotDTO($update['message']);
 
                 if ($webhookDTO->getSender()['is_bot']) {
                     return $this->json('Bot communication not supported yet!');
@@ -59,8 +60,8 @@ final class TradingController extends AbstractController
 
                 $tradingBotCommand->setup($webhookDTO->getChatId(), $webhookDTO->getSender());
 
-                $commands = ['start', 'open', 'deposit', 'exit'];
-                if (in_array($webhookDTO->getCommand(), $commands)) {
+                if (TCommand::tryFrom($webhookDTO->getCommand()) !== null) {
+                    $tradingBotCommand->exit($webhookDTO->getCommand() !== TCommand::EXIT->value);
                     $tradingBotCommand->{$webhookDTO->getCommand()}();
                     return $this->json('OK');
                 }

@@ -14,11 +14,11 @@ final readonly class TradingBotDTO
 
     public function __construct(array $data)
     {
-        $this->chatId = $data['message']['chat']['id'];
-        $this->command =  ltrim($data['message']['text'], '/');
-        $this->sender = $data['message']['from'];
-        $this->languageCode = $data['language_code'];
-        $this->telegramId = $data['message']['from']['id'];
+        $this->chatId = $data['chat']['id'];
+        $this->command =  ltrim($data['text'], '/');
+        $this->sender = $data['from'];
+        $this->languageCode = $data['from']['language_code'];
+        $this->telegramId = $data['from']['id'];
     }
 
     /**

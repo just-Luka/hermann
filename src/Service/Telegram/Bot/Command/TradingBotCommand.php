@@ -34,8 +34,6 @@ final readonly class TradingBotCommand
 
     public function start(): void
     {
-        $this->exit(true);
-
         $sender = $this->sender;
         $user = $this->userRepository->findByTelegramId($sender['id']);
 
@@ -93,8 +91,6 @@ Available Commands:
     // User Blocking
     public function open(): void
     {
-        $this->exit(true);
-
         $sender = $this->sender;
         $user = $this->userRepository->findByTelegramId($sender['id']);
 
@@ -129,8 +125,6 @@ Type: <b>Bitcoin</b>, <b>ETH</b>, <b>Tesla</b>, <b>USD/EUR</b>, <b>Gold</b>
 
     public function deposit(): void
     {
-        $this->exit(true);
-
         $sender = $this->sender;
         $user = $this->userRepository->findByTelegramId($sender['id']);
 
@@ -168,6 +162,7 @@ Please choose a deposit method:
 
     public function exit($hideMessage = false): void
     {
+
         $sender = $this->sender;
         $user = $this->userRepository->findByTelegramId($sender['id']);
 
