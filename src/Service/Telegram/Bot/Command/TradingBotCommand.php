@@ -6,6 +6,7 @@ namespace App\Service\Telegram\Bot\Command;
 
 use App\Entity\CommandQueueStorage;
 use App\Entity\User;
+use App\Enum\TradingBot\Question\MeQuestion;
 use App\Repository\CommandQueueStorageRepository;
 use App\Repository\UserRepository;
 use App\Service\Telegram\Bot\TradingBotService;
@@ -87,7 +88,41 @@ Available Commands:
         $this->tradingBotService->sendMessage($this->chatId, $message);
     }
 
-    // Must be setup security protocol: 
+    public function me(): void
+    {
+        $sender = $this->sender;
+        $user = $this->userRepository->findByTelegramId($sender['id']);
+
+        $instructions = [
+            'type' => 'me',
+        ];
+
+        $commandQueueStorage = (new CommandQueueStorage())
+            ->setUser($user)
+            ->setCommandName(__FUNCTION__)
+            ->setLastQuestion(MeQuestion::CHECKING_ASSETS->value)
+            ->setInstructions($instructions)
+            ->setCount(0)
+            ->setCreatedAt(new DateTimeImmutable())
+            ->setUpdatedAt(new DateTimeImmutable());
+
+        $this->entityManager->persist($commandQueueStorage);
+        $this->entityManager->flush();
+
+        $message = "
+Account Details:
+
+Name: <b>{$user->getFirstName()}</b>
+Current Balance: <b>\${$user->getBalance()}</b>
+Margin Balance: <b>$0</b>
+Assets: <b>0</b>
+------------------------------
+        ";
+
+        $this->tradingBotService->sendMessage($this->chatId, $message);
+    }
+
+    // Must be setup security protocol:
     // User Blocking
     public function open(): void
     {

@@ -25,6 +25,8 @@ final readonly class CommandContext
      */
     public function handle(string $input): void
     {
-        $this->state->handle($input);
+        if (isset($this->state)) {
+            $this->state->handle($input);
+        }
     }
 }

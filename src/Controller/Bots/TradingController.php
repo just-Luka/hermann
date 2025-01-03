@@ -10,6 +10,7 @@ use App\Enum\TradingBot\TCommand;
 use App\Event\HermannPaymentsEvent;
 use App\Repository\CommandQueueStorageRepository;
 use App\Repository\UserRepository;
+use App\Service\Telegram\Bot\Communication\MeCommunication;
 use App\Service\Telegram\Bot\Communication\OpenCommunication;
 use App\Service\Telegram\Bot\Command\TradingBotCommand;
 use App\Service\Telegram\Bot\Communication\DepositCommunication;
@@ -45,6 +46,7 @@ final class TradingController extends AbstractController
         UserRepository $userRepository, 
         OpenCommunication $openCommunication,
         DepositCommunication $depositCommunication,
+        MeCommunication $meCommunication,
         CommandContext $context,
     ): JsonResponse
     {
@@ -78,7 +80,9 @@ final class TradingController extends AbstractController
                     $communication = match ($storage->getCommandName()) {
                         'open' => $openCommunication,
                         'deposit' => $depositCommunication,
+                        'me' => $meCommunication
                     };
+
                     $communication->setup($user, $storage);
 
                     switch ($storage->getLastQuestion()) {
@@ -102,7 +106,12 @@ final class TradingController extends AbstractController
                         case CommandQueueStorage::QUESTION_TYPING_USD_AMOUNT:
                             $context->setState(new TypingUSDAmountState($communication));
                             break;
+                            ###
+                        default:
+                            // non-sense text ...
+                            break;
                     }
+
                     $context->handle($text);
                 }
             }
