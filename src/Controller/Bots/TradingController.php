@@ -82,37 +82,19 @@ final class TradingController extends AbstractController
                         'deposit' => $depositCommunication,
                         'me' => $meCommunication
                     };
-
                     $communication->setup($user, $storage);
 
-                    switch ($storage->getLastQuestion()) {
-                        ### /OPEN
-                        case CommandQueueStorage::QUESTION_SEARCH_ASSET:
-                            $context->setState(new SearchAssetState($communication));
-                            break;
-                        case CommandQueueStorage::QUESTION_CHOOSING_ASSET:
-                            $context->setState(new ChoosingAssetState($communication));
-                            break;
-                        case CommandQueueStorage::QUESTION_TYPING_AMOUNT:
-                            $context->setState(new TypingAmountState($communication));
-                            break;
-                        case CommandQueueStorage::QUESTION_CONFIRMING_AMOUNT:
-                            $context->setState(new ConfirmAmountState($communication, $tradingBotCommand));
-                            break;
-                        ### /DEPOSIT
-                        case CommandQueueStorage::QUESTION_DEPOSIT:
-                            $context->setState(new ChoosingDepositState($communication));
-                            break;
-                        case CommandQueueStorage::QUESTION_TYPING_USD_AMOUNT:
-                            $context->setState(new TypingUSDAmountState($communication));
-                            break;
-                            ###
-                        default:
-                            // non-sense text ...
-                            break;
-                    }
+                    $state = match ($storage->getLastQuestion()) {
+                        CommandQueueStorage::QUESTION_SEARCH_ASSET => new SearchAssetState($communication),
+                        CommandQueueStorage::QUESTION_CHOOSING_ASSET => new ChoosingAssetState($communication),
+                        CommandQueueStorage::QUESTION_TYPING_AMOUNT => new TypingAmountState($communication),
+                        CommandQueueStorage::QUESTION_CONFIRMING_AMOUNT => new ConfirmAmountState($communication, $tradingBotCommand),
+                        CommandQueueStorage::QUESTION_DEPOSIT => new ChoosingDepositState($communication),
+                        CommandQueueStorage::QUESTION_TYPING_USD_AMOUNT => new TypingUSDAmountState($communication),
+                        default => null,
+                    };
 
-                    $context->handle($text);
+                    $context->setState($state)->handle($text);
                 }
             }
         } catch (Exception $e) {

@@ -8,15 +8,17 @@ use App\State\StateInterface;
 
 final readonly class CommandContext
 {
-    private StateInterface $state;
+    private ?StateInterface $state;
 
     /**
-     * @param StateInterface $state
-     * @return void
+     * @param StateInterface|null $state
+     * @return CommandContext
      */
-    public function setState(StateInterface $state): void
+    public function setState(?StateInterface $state): self
     {
         $this->state = $state;
+
+        return $this;
     }
 
     /**
